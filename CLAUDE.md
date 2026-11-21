@@ -21,6 +21,7 @@ countries). Read these before making changes:
 - Backend tests: `cd backend && bundle exec rspec`
 - Backend lint: `cd backend && bin/rubocop`
 - Frontend tests: `cd frontend && npm test`
+- Frontend build and lint: `cd frontend && npm run build && npm run lint`
 - Seed data: `cd backend && bin/rails db:seed`
 
 ## Rules
@@ -43,6 +44,29 @@ countries). Read these before making changes:
   random data or the current time without freezing it.
 - Use FactoryBot factories with explicit attributes for anything a test asserts on.
 - Test behaviour, not schema structure: no specs that only check index or column names.
+
+## Frontend
+
+- API calls live in frontend/src/api/: one module per resource (e.g.
+  session.ts) built on `apiRequest` in client.ts, with response types in
+  types.ts. Components never call fetch directly; they use TanStack Query
+  hooks around those functions.
+- Every failed request throws an `ApiError` with `status` and `messages`
+  (the API's `errors` array; status 0 means the server was unreachable).
+  Show `messages` as they are, in an Ant Design Alert or on the form field;
+  don't reword API errors.
+- A 401 ends the session and sends the user to /login. Requests where a
+  401 is an expected answer (login, the session check) pass
+  `redirectOnUnauthorized: false`. A 409 means stale data: show the message
+  and reload. Queries never retry a 4xx.
+- Money arrives as `{ amount, currency }` strings. Display it only with
+  `formatMoney` or `<MoneyText>` (src/money/), which pass the string to
+  Intl.NumberFormat. Never `Number()` or `parseFloat` an amount, and don't
+  do money arithmetic in the browser.
+- A converted value (`converted: true`) is always shown with its `label`.
+- Tests use Vitest and React Testing Library with fetch mocked by
+  `mockFetch`, and `renderApp(path)` for whole-app flows (src/test/). No
+  network calls.
 
 ## Working style
 
