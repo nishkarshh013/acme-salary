@@ -139,3 +139,14 @@ which computes in floating point; the result is converted back to an exact
 decimal, which is exact for any realistic salary. Country and department
 totals are rounded separately, so the rows can differ from the org-wide total
 by a cent; the UI notes this.
+
+### 9. One source of truth for "today"
+
+Effective dates can't be in the future, so browser and server must agree on
+what today is. The server owns it: Rails uses a configured business timezone
+(APP_TIME_ZONE, default UTC), every date rule uses Date.current, and
+GET /api/session returns today's date, which the forms use for their default
+and maximum. Without this, saves made in India between midnight and 05:30
+would be rejected, because the browser's date is ahead of UTC. A tab left
+open across midnight keeps the previous day until the session is fetched
+again (on focus or reload); the server still enforces the rule.
