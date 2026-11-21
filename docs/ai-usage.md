@@ -13,6 +13,9 @@ what I accepted, and where I corrected or overrode the output.
 - I gathered requirements myself first, by asking the Incubyte team
   [clarifying questions](clarifications.md), and gave the AI those answers as context instead of letting it guess scope.
 - I asked for reasoning and trade-offs, not just output, so I could judge decisions.
+- Standing conventions for the coding agent live in [CLAUDE.md](../CLAUDE.md)
+  (money as decimals, append-only history, no commits by the agent), so every
+  session starts from the same rules. The agent stops after each chunk for my review.
 - I review every generated change before committing.
 - I run the test suite myself (`bundle exec rspec` for the backend, `npm test` for
   the frontend) before every commit, and only commit when it is green.
@@ -29,6 +32,9 @@ what I accepted, and where I corrected or overrode the output.
 | 5 | Architecture | Asked why one repo instead of separate FE and BE projects | Trade-off explanation | Kept one repo; same-origin deployment lets me use httpOnly cookies instead of JWTs in localStorage |
 | 6 | Docs | Asked what to write in this log | A template with pre-filled entries | Removed tools I did not use, so the log reflects my actual workflow |
 | 7 | Architecture | Asked AI to review my [architecture.md](architecture.md) | Review: I had pasted its earlier answer verbatim, including chat phrasing, and the note covered only the repo decision | Rewrote the note as short decision records and expanded it to cover the stack, data model, currency handling and append-only history |
+| 8 | Docs | Asked AI to check this log | Review: the client's answers were pasted into the middle of the log and broke its structure | Moved them into their own file, [clarifications.md](clarifications.md), and linked to it from here |
+| 9 | Models | Gave Claude Code (guided by CLAUDE.md) a scoped prompt for countries, departments, job titles and employees | Migrations, models, factories and specs, plus a report flagging its own extra choices and two open questions | Accepted its extra choices (currency must match country, DB check constraints, normalization, delete guards, locking spec). Dropped the redundant country_id index, since the composite index covers it. Made department and job title names case-insensitive, because "Engineering" and "engineering" as separate rows would split one department in the insights. |
+| 10 | Setup | Investigated the nested repo Claude Code reported | — | Removed backend/.git and tracked the backend files directly in a fix commit, keeping the fix separate from the model work |
 
 ## Prompts worth keeping
 
@@ -38,7 +44,9 @@ Lightly edited for spelling.
 > I am a Ruby on Rails developer. I got an assignment which I need to complete.
 > The tech stack is Rails + React JS. I have attached the assignment. I asked
 > the Incubyte team some functional and non-functional questions and gathered
-> the answers: [The full answers are recorded in [clarifications.md](clarifications.md).]
+> the answers: [answers pasted in full]
+
+The full answers are recorded in [clarifications.md](clarifications.md).
 
 ### 2. Requirements document
 > OK, go ahead please. (Asking for the one-page requirements document.)
@@ -57,6 +65,12 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
 > Are these correct, or should we rephrase them? (Shared my [architecture.md](architecture.md)
 > and this log for review.)
 
+### 6. First models (Claude Code)
+> Read CLAUDE.md and docs/architecture.md first. Create the first part of the
+> data model in backend/: migrations and models for countries, departments,
+> job_titles and employees... Do not create the history tables or exchange
+> rates yet. Run bundle exec rspec and stop when it passes, so I can review.
+
 ## Where AI got it wrong
 
 - **Incomplete edit.** When I asked to preserve history, the first change updated
@@ -68,3 +82,9 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   pasted verbatim, including a sentence addressed to me ("that's worth saying in
   your architecture note"). A review caught it before commit. Lesson: AI text is
   a draft; project docs must be rewritten in my own voice.
+- **Nested git repository.** The setup command from Claude (claude.ai) ran
+  `rails new backend` without `--skip-git`, so Rails created its own repository
+  inside backend/. The outer repo stored only a pointer to it, and the scaffold
+  commit pushed to GitHub contained no backend code. Claude Code noticed the
+  mismatch later while building the models. Lesson: after scaffolding, check
+  that `git ls-files` lists the files.
