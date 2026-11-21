@@ -107,3 +107,18 @@ code; nothing in the app calls them, and only the app writes to the database.
 A Postgres trigger would close that gap fully, but Rails' schema.rb can't
 represent triggers, so it would mean switching to structure.sql. That is the
 upgrade path if other systems ever write to this database.
+
+### 7. Authentication and CSRF
+
+One HR manager logs in with email and password (Rails 8 authentication,
+adapted for API mode). Sessions are stored in the database and identified by
+a signed, httpOnly, SameSite=Lax cookie that is secure in production. Sessions
+expire after 12 hours. Login is rate-limited to 10 attempts per 3 minutes.
+
+Because the browser sends the cookie automatically, cookie-based auth needs
+CSRF protection. The UI and API share one origin, so state-changing requests
+(POST, PATCH, PUT, DELETE) with an Origin header that isn't the app's own are
+rejected with 403. Together with SameSite=Lax, this blocks cross-site requests
+without needing CSRF tokens.
+
+Password reset is out of scope: there is one user and no email delivery.
