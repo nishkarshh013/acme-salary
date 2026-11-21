@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchEmployees } from '../api/employees'
+import { employeeKeys } from './employeeKeys'
 import { applyChange, type EmployeeListState, parseListState, serializeListState, toApiParams } from './listState'
 
 /** The list state from the URL, and a function that changes it (adding a history entry). */
@@ -21,7 +22,7 @@ export function useEmployeeListState() {
 export function useEmployees(state: EmployeeListState) {
   const params = toApiParams(state)
   return useQuery({
-    queryKey: ['employees', 'list', params],
+    queryKey: [...employeeKeys.lists, params],
     queryFn: ({ signal }) => fetchEmployees(params, signal),
     placeholderData: keepPreviousData,
   })

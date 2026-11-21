@@ -3,7 +3,7 @@ import { fetchSession, logIn, logOut } from '../api/session'
 import { clearCachedData, endSession, SESSION_QUERY_KEY } from '../api/queryClient'
 
 /**
- * The logged-in user (null when logged out). Kept while navigating
+ * The session: the logged-in user and the server's today (null when logged out). Kept while navigating
  * (staleTime: Infinity), but checked again every time the user returns to
  * the tab, so a session that expired meanwhile sends them to the login page
  * at once. Other queries don't refetch on focus.
@@ -27,7 +27,7 @@ export function useLogin() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: logIn,
-    onSuccess: (user) => client.setQueryData(SESSION_QUERY_KEY, user),
+    onSuccess: (session) => client.setQueryData(SESSION_QUERY_KEY, session),
   })
 }
 
@@ -38,4 +38,17 @@ export function useLogout() {
     mutationFn: logOut,
     onSettled: () => endSession(client),
   })
+}
+
+/**
+ * Today's date as the server sees it (its APP_TIME_ZONE), as YYYY-MM-DD.
+ * Forms use it for default and latest dates, so the browser's clock and time
+ * zone can't disagree with what the server accepts. It is refreshed with the
+ * session, including each time the user returns to the tab.
+ * Only for pages behind RequireAuth, where the session is loaded.
+ */
+export function useToday(): string {
+  const { data } = useSession()
+  if (!data) throw new Error('useToday is only available on pages that require a session')
+  return data.today
 }

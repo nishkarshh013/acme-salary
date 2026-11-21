@@ -8,7 +8,7 @@ const NAV_ITEMS = [
 ]
 
 export function AppLayout() {
-  const { data: user } = useSession()
+  const { data: session } = useSession()
   const logout = useLogout()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -28,7 +28,7 @@ export function AppLayout() {
           style={{ flex: 1, minWidth: 0 }}
         />
         <Space>
-          <Typography.Text style={{ color: 'rgba(255,255,255,0.85)' }}>{user?.email_address}</Typography.Text>
+          <Typography.Text style={{ color: 'rgba(255,255,255,0.85)' }}>{session?.user.email_address}</Typography.Text>
           <Button
             loading={logout.isPending}
             onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/login', { replace: true }) })}

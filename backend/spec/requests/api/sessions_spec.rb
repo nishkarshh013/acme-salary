@@ -19,7 +19,9 @@ RSpec.describe "API session", type: :request do
       expect { log_in }.to change(Session, :count).by(1)
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body).to eq("user" => { "id" => user.id, "email_address" => "hr@acme.test" })
+      expect(response.parsed_body).to eq(
+        "user" => { "id" => user.id, "email_address" => "hr@acme.test" }, "today" => Date.current.iso8601
+      )
       expect(session_cookie_header).to match(/httponly/i).and match(/samesite=lax/i)
       expect(cookies[:session_id]).not_to eq(Session.last.id.to_s) # signed, not the raw id
     end
@@ -58,6 +60,26 @@ RSpec.describe "API session", type: :request do
   it_behaves_like "requires authentication", :delete, "/api/session"
 
   describe "GET /api/session" do
+    it "returns the user and today's date in the app time zone" do
+      log_in
+      get "/api/session"
+
+      expect(response.parsed_body).to eq(
+        "user" => { "id" => user.id, "email_address" => "hr@acme.test" }, "today" => Date.current.iso8601
+      )
+    end
+
+    context "with APP_TIME_ZONE=Asia/Kolkata at 00:30 IST" do
+      include_context "Asia/Kolkata at 00:30 IST"
+
+      it "says today is already the Indian date, though UTC is still on the day before" do
+        log_in
+        get "/api/session"
+
+        expect(response.parsed_body["today"]).to eq("2026-06-15")
+      end
+    end
+
     it "returns 401 without a session" do
       get "/api/session"
 

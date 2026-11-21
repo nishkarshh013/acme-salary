@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { setupUser } from '../test/user'
 import { describe, expect, it } from 'vitest'
 import { apiRequest } from '../api/client'
 import { mockFetch } from '../test/mockFetch'
@@ -9,7 +9,7 @@ const hrUser = { id: 1, email_address: 'hr@acme.test' }
 const notLoggedIn = { status: 401, body: { errors: ['Not logged in'] } }
 
 async function submitLogin(email: string, password: string) {
-  const user = userEvent.setup()
+  const user = setupUser()
   await user.type(screen.getByLabelText('Email'), email)
   await user.type(screen.getByLabelText('Password'), password)
   await user.click(screen.getByRole('button', { name: 'Log in' }))
@@ -28,7 +28,7 @@ describe('login flow', () => {
   it('logs in and returns to the page the user asked for', async () => {
     const fetchMock = mockFetch({
       'GET /api/session': notLoggedIn,
-      'POST /api/session': { status: 201, body: { user: hrUser } },
+      'POST /api/session': { status: 201, body: { user: hrUser, today: '2026-06-15' } },
     })
     renderApp('/insights')
 
@@ -63,24 +63,24 @@ describe('login flow', () => {
     const fetchMock = mockFetch({ 'GET /api/session': notLoggedIn })
     renderApp('/login')
 
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Log in' }))
+    await setupUser().click(await screen.findByRole('button', { name: 'Log in' }))
 
     expect(await screen.findByText('Enter your email address')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
   it('logs out and returns to the login page', async () => {
-    mockFetch({ 'GET /api/session': { status: 200, body: { user: hrUser } }, 'DELETE /api/session': { status: 204 } })
+    mockFetch({ 'GET /api/session': { status: 200, body: { user: hrUser, today: '2026-06-15' } }, 'DELETE /api/session': { status: 204 } })
     renderApp('/employees')
 
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Log out' }))
+    await setupUser().click(await screen.findByRole('button', { name: 'Log out' }))
 
     expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument()
   })
 
   it('sends the user to the login page when any request gets a 401', async () => {
     mockFetch({
-      'GET /api/session': { status: 200, body: { user: hrUser } },
+      'GET /api/session': { status: 200, body: { user: hrUser, today: '2026-06-15' } },
       'GET /api/employees': { status: 401, body: { errors: ['Not logged in'] } },
     })
     renderApp('/employees')

@@ -1,5 +1,5 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { setupUser } from '../test/user'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Employee, EmployeesPage } from '../api/types'
 import { mockFetch, type MockResponse } from '../test/mockFetch'
@@ -33,11 +33,12 @@ function page(employees: Employee[], total = employees.length): EmployeesPage {
 
 function setup(path: string, employeesResponse: MockResponse | MockResponse[] = { status: 200, body: page([employee()]) }) {
   const fetchMock = mockFetch({
-    'GET /api/session': { status: 200, body: { user: { id: 1, email_address: 'hr@acme.test' } } },
+    'GET /api/session': { status: 200, body: { user: { id: 1, email_address: 'hr@acme.test' }, today: '2026-06-15' } },
     'GET /api/countries': { status: 200, body: { countries: [germany, india] } },
     'GET /api/departments': { status: 200, body: { departments: [{ id: 1, name: 'Engineering' }] } },
     'GET /api/job_titles': { status: 200, body: { job_titles: [{ id: 1, name: 'Engineer' }] } },
     'GET /api/employees': employeesResponse,
+    'GET /api/employees/1': { status: 200, body: { employee: { ...employee(), lock_version: 0, timeline: [] } } },
   })
   renderApp(path)
 
@@ -112,7 +113,7 @@ describe('Employees page', () => {
 
       // Fake only timeouts (the debounce), after the page has loaded on the real clock.
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-      const user = userEvent.setup({ delay: 50, advanceTimers: vi.advanceTimersByTime })
+      const user = setupUser({ delay: 50, advanceTimers: vi.advanceTimersByTime })
 
       // Typed faster than the debounce: 50 ms between keystrokes, so no
       // request may go out while typing.
@@ -133,7 +134,7 @@ describe('Employees page', () => {
     await screen.findByText('EMP00001')
     expect(employeeRequests()[0]).toMatchObject({ page: '3' })
 
-    await userEvent.setup().click(screen.getByText('Inactive'))
+    await setupUser().click(screen.getByText('Inactive'))
 
     await waitFor(() => expect(employeeRequests().at(-1)).toEqual({ status: 'inactive', page: '1', per_page: '25' }))
   })
@@ -141,7 +142,7 @@ describe('Employees page', () => {
   it('disables salary sorting without a country filter, and explains why', async () => {
     setup('/employees')
     await screen.findByText('EMP00001')
-    const user = userEvent.setup()
+    const user = setupUser()
 
     expect(salaryHeader()).not.toHaveClass('ant-table-column-has-sorters')
     await user.hover(within(salaryHeader()).getByText('Current salary'))
@@ -153,7 +154,7 @@ describe('Employees page', () => {
     await screen.findByText('EMP00001')
 
     expect(salaryHeader()).toHaveClass('ant-table-column-has-sorters')
-    await userEvent.setup().click(within(salaryHeader()).getByText('Current salary'))
+    await setupUser().click(within(salaryHeader()).getByText('Current salary'))
 
     await waitFor(() =>
       expect(employeeRequests().at(-1)).toMatchObject({ country_id: '1', sort: 'current_salary', direction: 'asc' }),
@@ -173,7 +174,7 @@ describe('Employees page', () => {
     ])
 
     expect(await screen.findByText('No employees on this page.')).toBeInTheDocument()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Go to first page' }))
+    await setupUser().click(screen.getByRole('button', { name: 'Go to first page' }))
 
     expect(await screen.findByText('EMP00001')).toBeInTheDocument()
     expect(employeeRequests().at(-1)).toEqual({ q: 'rao', country_id: '1', status: 'all', page: '1', per_page: '50' })
@@ -196,7 +197,7 @@ describe('Employees page', () => {
     ])
     await screen.findByText('EMP00001')
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Page 2' }))
+    await setupUser().click(screen.getByRole('button', { name: 'Page 2' }))
 
     await waitFor(() => expect(employeeRequests().at(-1)).toMatchObject({ page: '2' }))
     expect(screen.getByText('EMP00001')).toBeInTheDocument() // the old page, not a blank table
@@ -211,7 +212,7 @@ describe('Employees page', () => {
   it('leaves a Ctrl-click on the employee code to the browser (new tab), without also navigating this tab', async () => {
     setup('/employees')
     const link = await screen.findByRole('link', { name: 'EMP00001' })
-    const user = userEvent.setup()
+    const user = setupUser()
 
     await user.keyboard('{Control>}')
     await user.click(link)
@@ -225,8 +226,8 @@ describe('Employees page', () => {
   it('opens the employee page when a row is clicked', async () => {
     setup('/employees')
 
-    await userEvent.setup().click(await screen.findByText('Asha Rao'))
+    await setupUser().click(await screen.findByText('Asha Rao'))
 
-    expect(await screen.findByRole('heading', { name: 'Employee 1' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Asha Rao' })).toBeInTheDocument()
   })
 })

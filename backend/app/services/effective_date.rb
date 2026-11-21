@@ -12,7 +12,7 @@ class EffectiveDate
   def errors
     return [ "Effective date can't be blank" ] if @raw.blank?
     return [ "Effective date is not a valid date" ] if value.nil?
-    return [ "Effective date can't be in the future" ] if value.future?
+    return [ "Effective date can't be in the future" ] if value > Date.current
 
     []
   end

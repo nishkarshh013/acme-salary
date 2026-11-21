@@ -10,7 +10,7 @@ module Api
 
     # GET /api/session
     def show
-      render json: user_json(Current.user)
+      render json: session_json(Current.user)
     end
 
     # POST /api/session
@@ -18,7 +18,7 @@ module Api
       user = authenticate
       if user
         start_new_session_for(user)
-        render json: user_json(user), status: :created
+        render json: session_json(user), status: :created
       else
         # Same message whether the email or the password is wrong.
         render_errors INVALID_CREDENTIALS, status: :unauthorized
@@ -41,8 +41,10 @@ module Api
       User.authenticate_by(email_address: email_address, password: password)
     end
 
-    def user_json(user)
-      { user: { id: user.id, email_address: user.email_address } }
+    # today is the server's date in the app time zone (APP_TIME_ZONE), so the
+    # frontend's default and latest allowed dates match what the server accepts.
+    def session_json(user)
+      { user: { id: user.id, email_address: user.email_address }, today: Date.current.iso8601 }
     end
   end
 end

@@ -14,6 +14,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     restoreMocks: true,
+    // Same results on every machine: the browser clock's local date is a UTC date.
+    env: { TZ: 'UTC' },
     unstubGlobals: true,
   },
 })

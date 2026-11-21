@@ -33,7 +33,12 @@ module Backend
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # The business's time zone decides what "today" is: effective and hire
+    # dates may not be later than Date.current in this zone, and
+    # GET /api/session tells the frontend the same date. Any name from
+    # `bin/rails time:zones:all`, e.g. "Asia/Kolkata". Timestamps are still
+    # stored in UTC.
+    config.time_zone = ENV.fetch("APP_TIME_ZONE", "UTC")
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Only loads a smaller set of middleware suitable for API only apps.

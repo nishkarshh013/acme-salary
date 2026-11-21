@@ -25,9 +25,13 @@ export interface User {
   email_address: string
 }
 
+/** GET/POST /api/session. today is the server's date in its time zone (YYYY-MM-DD). */
 export interface SessionResponse {
   user: User
+  today: string
 }
+
+export type Session = SessionResponse
 
 export interface Country {
   id: number

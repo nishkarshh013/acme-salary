@@ -71,7 +71,7 @@ module Employees
 
     def pre_save_violations(employee)
       errors = []
-      errors << "Hire date can't be in the future" if employee.hire_date&.future?
+      errors << "Hire date can't be in the future" if employee.hire_date && employee.hire_date > Date.current
       # Checked on the raw salary: assigning it to the decimal(15,2) column
       # would already have rounded it.
       errors.concat(salary.errors)

@@ -1,6 +1,6 @@
 import { focusManager, QueryObserver } from '@tanstack/react-query'
 import { act, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { setupUser } from '../test/user'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createQueryClient } from '../api/queryClient'
 import { mockFetch } from '../test/mockFetch'
@@ -26,7 +26,7 @@ describe('session check on window focus', () => {
   it('sends the user to the login page when the session expired while they were away', async () => {
     mockFetch({
       'GET /api/session': [
-        { status: 200, body: { user } },
+        { status: 200, body: { user, today: '2026-06-15' } },
         { status: 401, body: { errors: ['Not logged in'] } },
       ],
     })
@@ -41,7 +41,7 @@ describe('session check on window focus', () => {
   })
 
   it('keeps the user on the page when the session is still valid', async () => {
-    const fetchMock = mockFetch({ 'GET /api/session': { status: 200, body: { user } } })
+    const fetchMock = mockFetch({ 'GET /api/session': { status: 200, body: { user, today: '2026-06-15' } } })
     renderApp('/employees')
     await screen.findByRole('heading', { name: 'Employees' })
     expect(sessionChecks(fetchMock)).toHaveLength(1)
@@ -53,11 +53,11 @@ describe('session check on window focus', () => {
   })
 
   it('does not check the session again when moving between pages', async () => {
-    const fetchMock = mockFetch({ 'GET /api/session': { status: 200, body: { user } } })
+    const fetchMock = mockFetch({ 'GET /api/session': { status: 200, body: { user, today: '2026-06-15' } } })
     renderApp('/employees')
     await screen.findByRole('heading', { name: 'Employees' })
 
-    await userEvent.setup().click(screen.getByRole('link', { name: 'Insights' }))
+    await setupUser().click(screen.getByRole('link', { name: 'Insights' }))
 
     expect(await screen.findByRole('heading', { name: 'Insights' })).toBeInTheDocument()
     expect(sessionChecks(fetchMock)).toHaveLength(1)
