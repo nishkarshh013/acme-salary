@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
   namespace :api do
     resource :session, only: %i[ show create destroy ]
+
+    resources :countries, only: :index
+    resources :departments, only: :index
+    resources :job_titles, only: :index
+    resources :employees, only: %i[ index show ]
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

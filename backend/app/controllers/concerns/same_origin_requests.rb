@@ -20,7 +20,7 @@ module SameOriginRequests
     origin = request.headers["Origin"]
     return if origin.nil? || allowed_origins.include?(origin)
 
-    render json: { error: "Cross-origin request rejected" }, status: :forbidden
+    render_errors "Cross-origin request rejected", status: :forbidden
   end
 
   def allowed_origins

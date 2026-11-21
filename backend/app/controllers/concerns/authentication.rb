@@ -36,7 +36,7 @@ module Authentication
   end
 
   def request_authentication
-    render json: { error: "Not logged in" }, status: :unauthorized
+    render_errors "Not logged in", status: :unauthorized
   end
 
   def start_new_session_for(user)

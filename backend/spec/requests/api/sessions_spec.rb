@@ -36,7 +36,7 @@ RSpec.describe "API session", type: :request do
       expect { log_in(password: "wrong-password") }.not_to change(Session, :count)
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq("error" => "Invalid email address or password")
+      expect(response.parsed_body).to eq("errors" => [ "Invalid email address or password" ])
       expect(session_cookie_header).to be_nil
     end
 
@@ -44,7 +44,7 @@ RSpec.describe "API session", type: :request do
       log_in(email_address: "nobody@acme.test")
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq("error" => "Invalid email address or password")
+      expect(response.parsed_body).to eq("errors" => [ "Invalid email address or password" ])
     end
 
     it "rejects a missing password without an error" do
@@ -54,12 +54,15 @@ RSpec.describe "API session", type: :request do
     end
   end
 
+  it_behaves_like "requires authentication", :get, "/api/session"
+  it_behaves_like "requires authentication", :delete, "/api/session"
+
   describe "GET /api/session" do
     it "returns 401 without a session" do
       get "/api/session"
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq("error" => "Not logged in")
+      expect(response.parsed_body).to eq("errors" => [ "Not logged in" ])
     end
 
     it "returns 401 for a cookie that isn't signed by the app" do
@@ -115,7 +118,7 @@ RSpec.describe "API session", type: :request do
 
       expect { get "/api/session" }.to change(Session, :count).by(-1)
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq("error" => "Not logged in")
+      expect(response.parsed_body).to eq("errors" => [ "Not logged in" ])
     end
 
     it "accepts that same kind of cookie for a session under 12 hours old" do
@@ -158,7 +161,7 @@ RSpec.describe "API session", type: :request do
       expect { log_in(headers: { "Origin" => "https://evil.example" }) }.not_to change(Session, :count)
 
       expect(response).to have_http_status(:forbidden)
-      expect(response.parsed_body).to eq("error" => "Cross-origin request rejected")
+      expect(response.parsed_body).to eq("errors" => [ "Cross-origin request rejected" ])
     end
 
     it "rejects a logout from a foreign origin and keeps the session" do
@@ -214,7 +217,7 @@ RSpec.describe "API session", type: :request do
 
       expect { log_in }.not_to change(Session, :count)
       expect(response).to have_http_status(:too_many_requests)
-      expect(response.parsed_body).to eq("error" => "Too many login attempts. Try again in a few minutes.")
+      expect(response.parsed_body).to eq("errors" => [ "Too many login attempts. Try again in a few minutes." ])
     end
 
     it "allows logging in again once the window has passed" do

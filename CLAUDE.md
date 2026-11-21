@@ -34,6 +34,7 @@ countries). Read these before making changes:
 - Aggregations (min, max, average, median, totals) run in SQL, not Ruby.
 - All API endpoints require authentication.
 - Never log salary values.
+- Every API error response uses { errors: [...] }, an array of human-readable messages.
 
 ## Testing
 

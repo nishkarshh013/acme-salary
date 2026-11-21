@@ -5,7 +5,7 @@ module Api
 
     allow_unauthenticated_access only: :create
     rate_limit to: 10, within: 3.minutes, only: :create, with: lambda {
-      render json: { error: "Too many login attempts. Try again in a few minutes." }, status: :too_many_requests
+      render_errors "Too many login attempts. Try again in a few minutes.", status: :too_many_requests
     }
 
     # GET /api/session
@@ -21,7 +21,7 @@ module Api
         render json: user_json(user), status: :created
       else
         # Same message whether the email or the password is wrong.
-        render json: { error: INVALID_CREDENTIALS }, status: :unauthorized
+        render_errors INVALID_CREDENTIALS, status: :unauthorized
       end
     end
 
