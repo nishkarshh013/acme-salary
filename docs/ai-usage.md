@@ -44,6 +44,7 @@ what I accepted, and where I corrected or overrode the output.
 | 17 | API | Asked Claude Code for the write endpoints, auto-generated employee codes with retry on collision, and 409 for stale edits | Four endpoints wrapping the services, a typed error result so controllers never compare message text, and specs checking nothing changes on failure | Made unknown request fields raise in development and test so frontend typos surface immediately, while production keeps Rails' default. Kept the unrequested Detail query object, since it was flagged and harmless. |
 | 18 | Insights | Asked Claude Code for insights in SQL: full statistics within a country, only converted totals org-wide, inactive employees excluded | Three endpoints, a statistics query object, labelled conversions, and specs on a hand-built data set with medians worked out by hand | Checked that the expected medians were calculated independently, not copied from the code's output. Kept the one-cent rounding difference between breakdowns and decided to explain it in the UI rather than force totals to add up. |
 | 19 | Frontend | Asked Claude Code for the frontend foundation: API client, auth, layout, exact money formatting and test setup | The foundation with tests, verified through tests only | Checked it in the browser against the running Rails app and checked that no amount is converted to a JavaScript number. Switched tests to user-event. Added a session re-check when the tab regains focus, so an expired session is noticed immediately; Claude Code found that the obvious setting would have done nothing, and the tests proved it. |
+| 20 | Frontend | Asked Claude Code for the employee list with all table state in the URL, salary sorting only within one country, and a status for every requested item | The page with 69 tests. It broke the code on purpose to prove the debounce and Ctrl-click tests catch failures, and flagged which parts had no automated test. | Moved the debounce test to fake timers so it is fast and deterministic. Added a button to the past-the-end message. Covered the back button and dropdowns, which jsdom can't test well, with a manual browser check. |
 
 
 ## Prompts worth keeping
@@ -105,7 +106,7 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   missing. A grep of package.json showed user-event was never installed.
   Lesson: verify each item in a multi-part request, and prefer one task per
   prompt.
-  
+
   - **Untestable manual check.** The browser test plan from Claude (claude.ai)
   said to delete the session cookie and click Insights, but Insights was a
   placeholder that makes no API calls, so no 401 could happen. I questioned
