@@ -35,6 +35,7 @@ what I accepted, and where I corrected or overrode the output.
 | 8 | Docs | Asked AI to check this log | Review: the client's answers were pasted into the middle of the log and broke its structure | Moved them into their own file, [clarifications.md](clarifications.md), and linked to it from here |
 | 9 | Models | Gave Claude Code (guided by CLAUDE.md) a scoped prompt for countries, departments, job titles and employees | Migrations, models, factories and specs, plus a report flagging its own extra choices and two open questions | Accepted its extra choices (currency must match country, DB check constraints, normalization, delete guards, locking spec). Dropped the redundant country_id index, since the composite index covers it. Made department and job title names case-insensitive, because "Engineering" and "engineering" as separate rows would split one department in the insights. |
 | 10 | Setup | Investigated the nested repo Claude Code reported | — | Removed backend/.git and tracked the backend files directly in a fix commit, keeping the fix separate from the model work |
+| 11 | Models | Asked Claude Code for the history tables and exchange rates | Models and specs, plus a report showing that `delete`, `update_all`, `delete_all` and raw SQL bypass `readonly?` | Chose to override `delete` and document the rest instead of adding a Postgres trigger, because triggers would force a switch from schema.rb to structure.sql. Removed schema-structure specs and made "test behaviour, not structure" a CLAUDE.md rule. |
 
 ## Prompts worth keeping
 

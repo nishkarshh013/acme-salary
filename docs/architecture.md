@@ -100,3 +100,10 @@ erDiagram
 Indexes cover every foreign key, `employee_code`, `email`,
 `(country_id, department_id)` for drill-downs, and `(employee_id, effective_date)`
 on both history tables.
+
+`readonly?` and an overridden `delete` stop the model from updating or removing a
+saved row. Bulk methods (`update_all`, `delete_all`) and raw SQL bypass model
+code; nothing in the app calls them, and only the app writes to the database.
+A Postgres trigger would close that gap fully, but Rails' schema.rb can't
+represent triggers, so it would mean switching to structure.sql. That is the
+upgrade path if other systems ever write to this database.
