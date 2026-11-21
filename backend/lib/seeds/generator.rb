@@ -4,13 +4,14 @@ module Seeds
   # the same rows on every run, because every random choice (Faker's
   # included) comes from one Random instance and "today" is fixed at AS_OF.
   #
+  # Safe to run on any database: if any seeded table already has rows, it
+  # prints a message and changes nothing.
+  #
   # Rows are written with insert_all!, which skips validations, callbacks and
   # normalizes, so the generator itself keeps emails lowercase, currency
   # codes uppercase, and the employee's current values equal to their latest
   # revision and assignment.
   class Generator
-    class ExistingDataError < StandardError; end
-
     DEFAULT_SEED = 20_261_121
     BATCH_SIZE = 1_000
     # The generated history ends here, whatever day the seed runs.
@@ -33,8 +34,12 @@ module Seeds
       @emails = Set.new
     end
 
+    # Returns false, after printing why, when the database already has data.
     def call
-      raise ExistingDataError, existing_data_message if existing_data?
+      if existing_data?
+        out.puts existing_data_message
+        return false
+      end
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       with_faker_random do
@@ -46,6 +51,7 @@ module Seeds
         end
       end
       report(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started)
+      true
     end
 
     private
@@ -60,7 +66,7 @@ module Seeds
     end
 
     def existing_data_message
-      "The database already has data (#{Employee.count} employees). Nothing was changed. " \
+      "The database already has data (#{Employee.count} employees); skipped generating demo data. " \
         "To reset and reseed, run: bin/rails db:seed:replant"
     end
 

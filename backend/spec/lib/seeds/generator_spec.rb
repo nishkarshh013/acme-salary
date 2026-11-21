@@ -126,13 +126,18 @@ RSpec.describe Seeds::Generator do
   end
 
   describe "an existing database" do
-    it "refuses to run and changes nothing" do
+    it "skips with a message pointing to db:seed:replant and changes nothing" do
       create(:employee)
+      out = StringIO.new
+      result = nil
 
-      expect { generate }
-        .to raise_error(described_class::ExistingDataError, /bin\/rails db:seed:replant/)
-        .and not_change(Employee, :count)
+      expect { result = described_class.new(count: 50, seed: 1234, out: out).call }
+        .to not_change(Employee, :count)
         .and not_change(SalaryRevision, :count)
+        .and not_change(Country, :count)
+
+      expect(result).to be(false)
+      expect(out.string).to include("skipped generating demo data", "bin/rails db:seed:replant")
     end
   end
 end

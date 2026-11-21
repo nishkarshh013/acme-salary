@@ -75,6 +75,9 @@ RSpec.configure do |config|
 
   # Freeze the clock with travel_to for anything that depends on today's date.
   config.include ActiveSupport::Testing::TimeHelpers
+
+  # Rate limits count in Rails.cache; start every example from zero.
+  config.before { Rails.cache.clear }
 end
 
 Shoulda::Matchers.configure do |config|

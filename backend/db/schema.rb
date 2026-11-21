@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_21_100008) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_21_170157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -99,6 +99,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100008) do
     t.check_constraint "amount > 0::numeric", name: "salary_revisions_amount_positive"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email_address", null: false
+    t.string "password_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
+  end
+
   add_foreign_key "employee_assignments", "countries"
   add_foreign_key "employee_assignments", "departments"
   add_foreign_key "employee_assignments", "employees"
@@ -107,4 +124,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100008) do
   add_foreign_key "employees", "departments"
   add_foreign_key "employees", "job_titles"
   add_foreign_key "salary_revisions", "employees"
+  add_foreign_key "sessions", "users"
 end

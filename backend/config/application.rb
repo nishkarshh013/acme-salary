@@ -40,5 +40,16 @@ module Backend
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Session-cookie authentication (docs/architecture.md, decision 1). API
+    # mode leaves out the cookie and session middleware, so add them back.
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore,
+                          key: "_acme_salary_session", httponly: true, same_site: :lax,
+                          secure: Rails.env.production?
+
+    # Extra origins allowed to send POST/PATCH/PUT/DELETE, besides the app's
+    # own (see SameOriginRequests). Set per environment.
+    config.x.allowed_origins = []
   end
 end
