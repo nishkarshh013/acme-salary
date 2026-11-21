@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 afterEach(() => cleanup())
 
@@ -30,3 +30,11 @@ class ResizeObserverStub {
   disconnect() {}
 }
 window.ResizeObserver ??= ResizeObserverStub
+
+// React Testing Library only recognises Jest's fake timers: after each user
+// action it waits on a setTimeout(0), and advances the clock itself only when
+// a `jest` global exists. Without this, that wait never ends under Vitest's
+// fake timers. It has no effect while timers are real.
+;(globalThis as unknown as { jest: { advanceTimersByTime: (ms: number) => void } }).jest = {
+  advanceTimersByTime: (ms) => vi.advanceTimersByTime(ms),
+}

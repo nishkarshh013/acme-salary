@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../auth/LoginPage'
 import { RequireAuth } from '../auth/RequireAuth'
 import { AppLayout } from '../layout/AppLayout'
+import { EmployeeDetailPage } from '../pages/EmployeeDetailPage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { InsightsPage } from '../pages/InsightsPage'
 
@@ -13,6 +14,7 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/employees" element={<EmployeesPage />} />
+          <Route path="/employees/:id" element={<EmployeeDetailPage />} />
           <Route path="/insights" element={<InsightsPage />} />
         </Route>
       </Route>
