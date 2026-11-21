@@ -9,6 +9,11 @@ Rails.application.routes.draw do
       resources :salary_revisions, only: :create
       resources :assignments, only: :create
     end
+
+    namespace :insights do
+      resources :countries, only: %i[ index show ]
+      resource :summary, only: :show
+    end
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
