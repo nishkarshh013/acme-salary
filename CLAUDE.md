@@ -41,6 +41,7 @@ countries). Read these before making changes:
 - Tests must be fast and deterministic: no network calls, no reliance on
   random data or the current time without freezing it.
 - Use FactoryBot factories with explicit attributes for anything a test asserts on.
+- Test behaviour, not schema structure: no specs that only check index or column names.
 
 ## Working style
 
