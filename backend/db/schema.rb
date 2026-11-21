@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_21_100007) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_21_100008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,7 +93,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100007) do
     t.date "effective_date", null: false
     t.string "reason", null: false
     t.datetime "created_at", null: false
+    t.string "previous_currency", limit: 3
     t.index ["employee_id", "effective_date"], name: "index_salary_revisions_on_employee_id_and_effective_date"
+    t.check_constraint "(previous_amount IS NULL) = (previous_currency IS NULL)", name: "salary_revisions_previous_amount_and_currency_together"
     t.check_constraint "amount > 0::numeric", name: "salary_revisions_amount_positive"
   end
 

@@ -63,6 +63,7 @@ RSpec.describe Employees::Hire do
         amount: BigDecimal("1200000.00"),
         currency: "INR",
         previous_amount: nil,
+        previous_currency: nil,
         effective_date: Date.new(2026, 6, 1),
         reason: "Hired"
       )
@@ -104,13 +105,19 @@ RSpec.describe Employees::Hire do
     context "when the salary is zero" do
       let(:hire_call) { hire(salary: BigDecimal("0")) }
 
-      include_examples "saves nothing", "Current salary must be greater than 0"
+      include_examples "saves nothing", "Salary must be greater than 0"
+    end
+
+    context "when the salary can't be parsed" do
+      let(:hire_call) { hire(salary: "abc") }
+
+      include_examples "saves nothing", "Salary is not a number"
     end
 
     context "when the salary has more than two decimal places" do
       let(:hire_call) { hire(salary: "100.555") }
 
-      include_examples "saves nothing", "Amount can have at most 2 decimal places"
+      include_examples "saves nothing", "Salary can have at most 2 decimal places"
     end
 
     context "when an employee attribute is invalid" do

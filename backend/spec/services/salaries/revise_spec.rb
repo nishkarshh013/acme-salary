@@ -30,6 +30,7 @@ RSpec.describe Salaries::Revise do
         employee: employee,
         amount: BigDecimal("1100000.00"),
         previous_amount: BigDecimal("1000000.00"),
+        previous_currency: "INR",
         currency: "INR",
         effective_date: Date.new(2026, 6, 1),
         reason: "Annual review"
@@ -191,6 +192,15 @@ RSpec.describe Salaries::Revise do
 
         expect(result.errors).to eq([ described_class::STALE_MESSAGE ])
         expect(employee.reload.current_salary).to eq(BigDecimal("1000000.00"))
+      end
+
+      it "reloads the in-memory employee so it matches the database" do
+        employee
+        revise_call
+
+        expect(employee).not_to be_changed
+        expect(employee).to have_attributes(first_name: "Changed", current_salary: BigDecimal("1000000.00"))
+        expect(employee.attributes).to eq(Employee.find(employee.id).attributes)
       end
     end
   end

@@ -8,7 +8,7 @@ module Employees
 
     def initialize(attributes:, salary:, reason: "Hired")
       @attributes = attributes
-      @salary = salary
+      @salary = Salaries::Amount.new(salary, label: "Salary")
       @reason = reason
     end
 
@@ -39,24 +39,15 @@ module Employees
     def pre_save_violations(employee)
       errors = []
       errors << "Hire date can't be in the future" if employee.hire_date&.future?
-      errors << "Amount can have at most 2 decimal places" if too_many_decimal_places?
-      errors
-    end
-
-    # Checked on the raw salary: assigning it to the decimal(15,2) column
-    # would already have rounded it. Blank or unparseable salaries are left
-    # to the Employee validations.
-    def too_many_decimal_places?
-      return false if salary.blank?
-
-      decimal = BigDecimal(salary.to_s, exception: false)
-      decimal&.finite? && decimal.round(2) != decimal
+      # Checked on the raw salary: assigning it to the decimal(15,2) column
+      # would already have rounded it.
+      errors.concat(salary.errors)
     end
 
     def build_employee
       Employee.new(attributes).tap do |employee|
         # Salary always comes from the salary argument, in the country's currency.
-        employee.current_salary = salary
+        employee.current_salary = salary.value
         employee.salary_currency = employee.country&.currency_code
       end
     end
@@ -76,6 +67,7 @@ module Employees
         amount: employee.current_salary,
         currency: employee.salary_currency,
         previous_amount: nil,
+        previous_currency: nil,
         effective_date: employee.hire_date,
         reason: reason
       )

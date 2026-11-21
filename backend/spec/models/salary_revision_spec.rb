@@ -19,8 +19,39 @@ RSpec.describe SalaryRevision, type: :model do
     it { is_expected.to allow_value("INR").for(:currency) }
     it { is_expected.not_to allow_value("RUPEE", "IN").for(:currency) }
 
-    it "allows no previous_amount for an employee's first revision" do
-      expect(build(:salary_revision, previous_amount: nil)).to be_valid
+    it { is_expected.to allow_value(nil, "INR").for(:previous_currency) }
+    it { is_expected.not_to allow_value("RUPEE", "IN").for(:previous_currency) }
+
+    it "allows no previous amount or currency for an employee's first revision" do
+      expect(build(:salary_revision, previous_amount: nil, previous_currency: nil)).to be_valid
+    end
+
+    it "allows a previous amount in a different currency, as after a country move" do
+      revision = build(:salary_revision, currency: "EUR",
+                                         previous_amount: BigDecimal("1000000.00"), previous_currency: "INR")
+
+      expect(revision).to be_valid
+    end
+
+    it "requires a previous currency when there is a previous amount" do
+      revision = build(:salary_revision, previous_amount: BigDecimal("1000.00"), previous_currency: nil)
+
+      expect(revision).not_to be_valid
+      expect(revision.errors[:previous_currency]).to include("must be present when there is a previous amount")
+    end
+
+    it "requires a previous amount when there is a previous currency" do
+      revision = build(:salary_revision, previous_amount: nil, previous_currency: "INR")
+
+      expect(revision).not_to be_valid
+      expect(revision.errors[:previous_amount]).to include("must be present when there is a previous currency")
+    end
+
+    it "is rejected by the database when only one of previous amount and currency is set" do
+      revision = build(:salary_revision, previous_amount: BigDecimal("1000.00"), previous_currency: nil)
+
+      expect { revision.save(validate: false) }
+        .to raise_error(ActiveRecord::StatementInvalid, /salary_revisions_previous_amount_and_currency_together/)
     end
   end
 
@@ -69,7 +100,8 @@ RSpec.describe SalaryRevision, type: :model do
   describe "money" do
     it "keeps both amounts exactly, without float rounding" do
       revision = create(:salary_revision, amount: BigDecimal("1234567.89"),
-                                          previous_amount: BigDecimal("1000000.01"))
+                                          previous_amount: BigDecimal("1000000.01"),
+                                          previous_currency: "USD")
 
       reloaded = described_class.find(revision.id)
       expect(reloaded.amount).to eq(BigDecimal("1234567.89"))
