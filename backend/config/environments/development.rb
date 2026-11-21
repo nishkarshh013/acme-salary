@@ -65,6 +65,11 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # Fail loudly on a parameter a controller doesn't permit, so a typo or an
+  # unexpected field from the frontend shows up at once. Production keeps the
+  # default (unpermitted parameters are dropped).
+  config.action_controller.action_on_unpermitted_parameters = :raise
+
   # The Vite dev server proxies /api to Rails; requests come from its origin.
   config.x.allowed_origins = [ "http://localhost:5173" ]
 

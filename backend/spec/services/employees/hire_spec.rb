@@ -8,7 +8,6 @@ RSpec.describe Employees::Hire do
   let(:job_title) { create(:job_title, name: "Software Engineer") }
   let(:attributes) do
     {
-      employee_code: "EMP00001",
       first_name: "Asha",
       last_name: "Rao",
       email: "asha.rao@acme.test",
@@ -81,6 +80,75 @@ RSpec.describe Employees::Hire do
     end
   end
 
+  describe "employee codes" do
+    def hire_as(email) = hire(attributes: attributes.merge(email: email))
+
+    it "starts at EMP00001" do
+      expect(hire.record.employee_code).to eq("EMP00001")
+    end
+
+    it "gives sequential hires consecutive codes after the highest in use" do
+      create(:employee, employee_code: "EMP10000")
+
+      expect(hire_as("first@acme.test").record.employee_code).to eq("EMP10001")
+      expect(hire_as("second@acme.test").record.employee_code).to eq("EMP10002")
+    end
+
+    it "continues in numeric order past five digits" do
+      create(:employee, employee_code: "EMP99999")
+      create(:employee, employee_code: "EMP100000")
+
+      expect(hire.record.employee_code).to eq("EMP100001")
+    end
+
+    it "ignores a client-supplied employee code" do
+      result = hire(attributes: attributes.merge(employee_code: "CUSTOM-1", "employee_code" => "CUSTOM-2"))
+
+      expect(result.record.reload.employee_code).to eq("EMP00001")
+    end
+
+    # A stale highest-code read stands in for a concurrent hire that took
+    # the code between choosing it and saving.
+    context "when another hire takes the chosen code first" do
+      before do
+        create(:employee, employee_code: "EMP00001")
+        allow(Employee).to receive(:highest_code_number).and_return(0)
+      end
+
+      it "retries with the next number and succeeds (caught by the validation)" do
+        result = hire
+
+        expect(result).to be_success
+        expect(result.record.reload.employee_code).to eq("EMP00002")
+        expect(result.record.salary_revisions.count).to eq(1)
+      end
+
+      it "retries with the next number and succeeds (caught by the unique index)" do
+        allow_any_instance_of(ActiveRecord::Validations::UniquenessValidator).to receive(:validate_each)
+
+        expect(hire.record.reload.employee_code).to eq("EMP00002")
+      end
+    end
+
+    context "when every attempt collides" do
+      before do
+        %w[ EMP00001 EMP00002 EMP00003 ].each { |code| create(:employee, employee_code: code) }
+        allow(Employee).to receive(:highest_code_number).and_return(0)
+      end
+
+      it "gives up after 3 attempts and saves nothing" do
+        result = nil
+
+        expect { result = hire }
+          .to not_change(Employee, :count)
+          .and not_change(EmployeeAssignment, :count)
+          .and not_change(SalaryRevision, :count)
+
+        expect(result.errors).to eq([ described_class::CODE_EXHAUSTED_MESSAGE ])
+      end
+    end
+  end
+
   describe "a rejected hire" do
     shared_examples "saves nothing" do |expected_error|
       it "fails with a clear error and saves nothing" do
@@ -145,7 +213,7 @@ RSpec.describe Employees::Hire do
 
       let(:hire_call) { hire }
 
-      include_examples "saves nothing", described_class::DUPLICATE_MESSAGE
+      include_examples "saves nothing", described_class::DUPLICATE_EMAIL_MESSAGE
     end
 
     # The employee row is valid and gets inserted, then the first history

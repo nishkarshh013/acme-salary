@@ -5,7 +5,10 @@ Rails.application.routes.draw do
     resources :countries, only: :index
     resources :departments, only: :index
     resources :job_titles, only: :index
-    resources :employees, only: %i[ index show ]
+    resources :employees, only: %i[ index show create update ] do
+      resources :salary_revisions, only: :create
+      resources :assignments, only: :create
+    end
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

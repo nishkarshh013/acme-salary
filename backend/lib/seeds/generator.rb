@@ -114,7 +114,7 @@ module Seeds
       last_name = Faker::Name.last_name
 
       plan = Plan.new(
-        code: format("EMP%05d", number),
+        code: Employee.code_for(number),
         first_name: first_name,
         last_name: last_name,
         email: unique_email(first_name, last_name, number),

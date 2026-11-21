@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :employee do
-    sequence(:employee_code) { |n| format("EMP%05d", n) }
+    sequence(:employee_code) { |n| Employee.code_for(n) }
     first_name { "Jane" }
     last_name { "Doe" }
     sequence(:email) { |n| "employee#{n}@acme.test" }

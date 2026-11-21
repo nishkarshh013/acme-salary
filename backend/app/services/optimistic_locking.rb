@@ -14,4 +14,8 @@ module OptimisticLocking
   def stale?(employee, lock_version)
     Integer(lock_version, exception: false) != employee.lock_version
   end
+
+  def stale_failure
+    ServiceResult.failure(STALE_MESSAGE, error_type: :stale)
+  end
 end

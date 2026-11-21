@@ -9,6 +9,19 @@ class Employee < ApplicationRecord
   has_many :salary_revisions, dependent: :restrict_with_error
   has_many :employee_assignments, dependent: :restrict_with_error
 
+  CODE_PREFIX = "EMP".freeze
+
+  # EMP00001, EMP00002, ... (more digits once past 99999).
+  def self.code_for(number) = format("#{CODE_PREFIX}%05d", number)
+
+  # Highest number in use, compared numerically so EMP100000 sorts after
+  # EMP99999. 0 when there are no employees.
+  def self.highest_code_number
+    where("employee_code ~ ?", "^#{CODE_PREFIX}[0-9]+$")
+      .maximum(Arel.sql("CAST(SUBSTRING(employee_code FROM #{CODE_PREFIX.length + 1}) AS bigint)"))
+      .to_i
+  end
+
   enum :status, { active: "active", inactive: "inactive" }, default: :active, validate: true
 
   normalizes :email, with: ->(value) { value.strip.downcase }

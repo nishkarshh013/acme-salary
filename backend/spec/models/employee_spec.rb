@@ -115,6 +115,25 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe "employee codes" do
+    it "formats a number as an employee code" do
+      expect(described_class.code_for(42)).to eq("EMP00042")
+      expect(described_class.code_for(123_456)).to eq("EMP123456")
+    end
+
+    it "finds the highest code number numerically, ignoring other formats" do
+      create(:employee, employee_code: "EMP99999")
+      create(:employee, employee_code: "EMP100000")
+      create(:employee, employee_code: "LEGACY-7")
+
+      expect(described_class.highest_code_number).to eq(100_000)
+    end
+
+    it "is 0 with no employees" do
+      expect(described_class.highest_code_number).to eq(0)
+    end
+  end
+
   describe "optimistic locking" do
     it "rejects an update made on stale data" do
       employee = create(:employee, first_name: "Jane")

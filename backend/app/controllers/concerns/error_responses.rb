@@ -8,4 +8,9 @@ module ErrorResponses
   def render_errors(messages, status:)
     render json: { errors: Array(messages) }, status: status
   end
+
+  # 409 when the caller's lock_version is out of date, 422 otherwise.
+  def render_failure(result)
+    render_errors result.errors, status: result.stale? ? :conflict : :unprocessable_content
+  end
 end

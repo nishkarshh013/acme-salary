@@ -24,7 +24,7 @@ module Employees
     end
 
     def call
-      return ServiceResult.failure(STALE_MESSAGE) if stale?(employee, lock_version)
+      return stale_failure if stale?(employee, lock_version)
 
       errors = rule_violations
       return ServiceResult.failure(errors) if errors.any?
@@ -40,7 +40,7 @@ module Employees
       ServiceResult.success(assignment)
     rescue ActiveRecord::StaleObjectError
       employee.reload # drop the values assigned above; match the database
-      ServiceResult.failure(STALE_MESSAGE)
+      stale_failure
     rescue ActiveRecord::RecordInvalid => e
       employee.reload
       ServiceResult.failure(e.record.errors.full_messages)
