@@ -96,3 +96,10 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   commit pushed to GitHub contained no backend code. Claude Code noticed the
   mismatch later while building the models. Lesson: after scaffolding, check
   that `git ls-files` lists the files.
+
+- **Silently skipped task.** I asked Claude Code for two changes in one
+  prompt: re-check the session on tab focus, and switch tests to user-event.
+  Its report described only the first, and didn't say the second was
+  missing. A grep of package.json showed user-event was never installed.
+  Lesson: verify each item in a multi-part request, and prefer one task per
+  prompt.
