@@ -43,3 +43,18 @@ target, a pg_trgm GIN index on the searched columns is the next step.
 
 Country, department and job title are preloaded; a spec checks the query
 count stays constant as the list grows.
+
+## Insights API
+
+On 10,000 employees (9,711 active), full Rails stack, 30 runs each.
+
+| Endpoint | Median | p95 |
+|---|---|---|
+| Statistics by country | 29.7 ms | 57.6 ms |
+| One country by department | 20.4 ms | 24.6 ms |
+| One country by job title | 22.0 ms | 24.6 ms |
+| Org-wide summary | 39.5 ms | 59.7 ms |
+
+All aggregation (min, max, average, median, totals, currency conversion)
+runs in SQL, so no employee rows are loaded into Ruby. The summary runs three
+grouped queries.

@@ -122,3 +122,20 @@ rejected with 403. Together with SameSite=Lax, this blocks cross-site requests
 without needing CSRF tokens.
 
 Password reset is out of scope: there is one user and no email delivery.
+
+### 8. Insights stay within one currency
+
+Average, median, min and max are computed per country in local currency,
+and per department or job title within a country. Org-wide figures are
+limited to headcount and total payroll converted to USD: an org-wide median
+would mix salary markets and suggest comparisons the data doesn't support.
+Inactive employees are excluded from all statistics.
+
+Converted totals multiply each salary by its rate in exact decimal arithmetic
+and round once. If any employee's currency has no rate, the total is null
+rather than silently incomplete. Every converted figure carries a label with
+the oldest rate date used. The median uses PostgreSQL's percentile_cont,
+which computes in floating point; the result is converted back to an exact
+decimal, which is exact for any realistic salary. Country and department
+totals are rounded separately, so the rows can differ from the org-wide total
+by a cent; the UI notes this.
