@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_21_100004) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_21_100007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,6 +28,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100004) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index "lower((name)::text)", name: "index_departments_on_lower_name", unique: true
+  end
+
+  create_table "employee_assignments", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.bigint "country_id", null: false
+    t.bigint "department_id", null: false
+    t.bigint "job_title_id", null: false
+    t.date "effective_date", null: false
+    t.string "reason", null: false
+    t.datetime "created_at", null: false
+    t.index ["country_id"], name: "index_employee_assignments_on_country_id"
+    t.index ["department_id"], name: "index_employee_assignments_on_department_id"
+    t.index ["employee_id", "effective_date"], name: "index_employee_assignments_on_employee_id_and_effective_date"
+    t.index ["job_title_id"], name: "index_employee_assignments_on_job_title_id"
   end
 
   create_table "employees", force: :cascade do |t|
@@ -54,6 +68,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100004) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "employees_status_check"
   end
 
+  create_table "exchange_rates", force: :cascade do |t|
+    t.string "currency_code", limit: 3, null: false
+    t.decimal "rate_to_usd", precision: 18, scale: 8, null: false
+    t.date "as_of", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["currency_code"], name: "index_exchange_rates_on_currency_code", unique: true
+    t.check_constraint "rate_to_usd > 0::numeric", name: "exchange_rates_rate_to_usd_positive"
+  end
+
   create_table "job_titles", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -61,7 +85,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_21_100004) do
     t.index "lower((name)::text)", name: "index_job_titles_on_lower_name", unique: true
   end
 
+  create_table "salary_revisions", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "currency", limit: 3, null: false
+    t.decimal "previous_amount", precision: 15, scale: 2
+    t.date "effective_date", null: false
+    t.string "reason", null: false
+    t.datetime "created_at", null: false
+    t.index ["employee_id", "effective_date"], name: "index_salary_revisions_on_employee_id_and_effective_date"
+    t.check_constraint "amount > 0::numeric", name: "salary_revisions_amount_positive"
+  end
+
+  add_foreign_key "employee_assignments", "countries"
+  add_foreign_key "employee_assignments", "departments"
+  add_foreign_key "employee_assignments", "employees"
+  add_foreign_key "employee_assignments", "job_titles"
   add_foreign_key "employees", "countries"
   add_foreign_key "employees", "departments"
   add_foreign_key "employees", "job_titles"
+  add_foreign_key "salary_revisions", "employees"
 end

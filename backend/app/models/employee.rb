@@ -5,6 +5,10 @@ class Employee < ApplicationRecord
   belongs_to :department
   belongs_to :job_title
 
+  # Employees are made inactive, never deleted, so their history is kept.
+  has_many :salary_revisions, dependent: :restrict_with_error
+  has_many :employee_assignments, dependent: :restrict_with_error
+
   enum :status, { active: "active", inactive: "inactive" }, default: :active, validate: true
 
   normalizes :email, with: ->(value) { value.strip.downcase }

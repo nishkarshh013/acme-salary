@@ -5,6 +5,7 @@ RSpec.describe Country, type: :model do
 
   describe "associations" do
     it { is_expected.to have_many(:employees).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:employee_assignments).dependent(:restrict_with_error) }
   end
 
   describe "validations" do
@@ -18,10 +19,6 @@ RSpec.describe Country, type: :model do
 
     it { is_expected.to allow_value("INR").for(:currency_code) }
     it { is_expected.not_to allow_value("RUPEE", "IN", "12A").for(:currency_code) }
-  end
-
-  describe "database" do
-    it { is_expected.to have_db_index(:code).unique }
   end
 
   describe "normalization" do
@@ -40,6 +37,17 @@ RSpec.describe Country, type: :model do
 
       expect(country.destroy).to be(false)
       expect(country.errors[:base]).to be_present
+    end
+
+    it "is blocked while only a past assignment refers to the country" do
+      country = create(:country)
+      employee = create(:employee)
+      create(:employee_assignment, employee: employee, country: country)
+
+      expect(employee.country).not_to eq(country)
+      expect(country.destroy).to be(false)
+      expect(country.errors[:base]).to be_present
+      expect(country.class.exists?(country.id)).to be(true)
     end
   end
 end

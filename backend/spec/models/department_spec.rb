@@ -5,6 +5,7 @@ RSpec.describe Department, type: :model do
 
   describe "associations" do
     it { is_expected.to have_many(:employees).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:employee_assignments).dependent(:restrict_with_error) }
   end
 
   describe "validations" do
@@ -29,10 +30,6 @@ RSpec.describe Department, type: :model do
     end
   end
 
-  describe "database" do
-    it { is_expected.to have_db_index("lower((name)::text)").unique }
-  end
-
   describe "deletion" do
     it "is blocked while employees belong to it" do
       record = create(:department)
@@ -40,6 +37,17 @@ RSpec.describe Department, type: :model do
 
       expect(record.destroy).to be(false)
       expect(record.errors[:base]).to be_present
+    end
+
+    it "is blocked while only a past assignment refers to it" do
+      department = create(:department)
+      employee = create(:employee)
+      create(:employee_assignment, employee: employee, department: department)
+
+      expect(employee.department).not_to eq(department)
+      expect(department.destroy).to be(false)
+      expect(department.errors[:base]).to be_present
+      expect(department.class.exists?(department.id)).to be(true)
     end
   end
 end

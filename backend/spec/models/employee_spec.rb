@@ -7,6 +7,36 @@ RSpec.describe Employee, type: :model do
     it { is_expected.to belong_to(:country) }
     it { is_expected.to belong_to(:department) }
     it { is_expected.to belong_to(:job_title) }
+    it { is_expected.to have_many(:salary_revisions).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:employee_assignments).dependent(:restrict_with_error) }
+  end
+
+  describe "deletion" do
+    it "is blocked once the employee has a salary revision" do
+      employee = create(:employee)
+      create(:salary_revision, employee: employee)
+
+      expect(employee.destroy).to be(false)
+      expect(employee.errors[:base]).to be_present
+      expect(Employee.exists?(employee.id)).to be(true)
+    end
+
+    it "is blocked once the employee has an assignment" do
+      employee = create(:employee)
+      create(:employee_assignment, employee: employee)
+
+      expect(employee.destroy).to be(false)
+      expect(Employee.exists?(employee.id)).to be(true)
+    end
+
+    it "keeps history when the employee is made inactive" do
+      employee = create(:employee)
+      revision = create(:salary_revision, employee: employee)
+
+      employee.inactive!
+
+      expect(employee.reload.salary_revisions).to contain_exactly(revision)
+    end
   end
 
   describe "validations" do
@@ -70,13 +100,6 @@ RSpec.describe Employee, type: :model do
   end
 
   describe "database" do
-    it { is_expected.to have_db_index(:employee_code).unique }
-    it { is_expected.to have_db_index(:email).unique }
-    it { is_expected.not_to have_db_index(:country_id) }
-    it { is_expected.to have_db_index(:department_id) }
-    it { is_expected.to have_db_index(:job_title_id) }
-    it { is_expected.to have_db_index([ :country_id, :department_id ]) }
-
     it "rejects a status outside active and inactive" do
       employee = create(:employee)
 

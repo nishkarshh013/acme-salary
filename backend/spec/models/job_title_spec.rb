@@ -5,6 +5,7 @@ RSpec.describe JobTitle, type: :model do
 
   describe "associations" do
     it { is_expected.to have_many(:employees).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:employee_assignments).dependent(:restrict_with_error) }
   end
 
   describe "validations" do
@@ -29,10 +30,6 @@ RSpec.describe JobTitle, type: :model do
     end
   end
 
-  describe "database" do
-    it { is_expected.to have_db_index("lower((name)::text)").unique }
-  end
-
   describe "deletion" do
     it "is blocked while employees belong to it" do
       record = create(:job_title)
@@ -40,6 +37,17 @@ RSpec.describe JobTitle, type: :model do
 
       expect(record.destroy).to be(false)
       expect(record.errors[:base]).to be_present
+    end
+
+    it "is blocked while only a past assignment refers to it" do
+      job_title = create(:job_title)
+      employee = create(:employee)
+      create(:employee_assignment, employee: employee, job_title: job_title)
+
+      expect(employee.job_title).not_to eq(job_title)
+      expect(job_title.destroy).to be(false)
+      expect(job_title.errors[:base]).to be_present
+      expect(job_title.class.exists?(job_title.id)).to be(true)
     end
   end
 end

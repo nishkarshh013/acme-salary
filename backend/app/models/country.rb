@@ -1,5 +1,6 @@
 class Country < ApplicationRecord
   has_many :employees, dependent: :restrict_with_error
+  has_many :employee_assignments, dependent: :restrict_with_error
 
   normalizes :code, :currency_code, with: ->(value) { value.strip.upcase }
 

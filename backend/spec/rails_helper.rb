@@ -72,6 +72,9 @@ RSpec.configure do |config|
 
   # Use build/create/build_stubbed without the FactoryBot prefix.
   config.include FactoryBot::Syntax::Methods
+
+  # Freeze the clock with travel_to for anything that depends on today's date.
+  config.include ActiveSupport::Testing::TimeHelpers
 end
 
 Shoulda::Matchers.configure do |config|
