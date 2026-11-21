@@ -27,7 +27,7 @@ The single user is the HR Manager, who is trusted with all salary data. There is
 | Area | Feature | Why it matters to the HR Manager |
 | --- | --- | --- |
 | Employees | Paginated list with search by name, email or employee ID; filter by country, department, job title; sort by any column | Finding one person among 10,000 is the most frequent task |
-| Employees | Create, view and edit an employee (name, email, employee ID, country, department, job title, hire date, status) | Replaces editing rows in Excel |
+| Employees | Create, view and edit an employee (name, email, employee ID, country, department, job title, hire date, status) | Replaces editing rows in Excel, Employee IDs are generated automatically. |
 | Salary | Revise salary with amount, effective date and reason | Every pay change is recorded with its context |
 | History | Salary history: every revision with amount, currency, effective date and reason | Answers "when and why did this person's pay change?" |
 | History | Assignment history: every change of country, department or job title with effective date and reason | Answers "where and in what role was this person at any point?" |
