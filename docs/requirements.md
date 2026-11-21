@@ -1,6 +1,10 @@
 # ACME Salary Management — Requirements
 
-Nov 20, 2026 · Nishkarsh Sahu
+Nov 20, 2026 · @Nishkarsh Sahu
+
+Scope is based on the [clarifications](clarifications.md) received from the
+Incubyte team. The technical design that implements it is in
+[architecture.md](architecture.md).
 
 ## Goal
 
