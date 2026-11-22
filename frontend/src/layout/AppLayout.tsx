@@ -1,5 +1,7 @@
 import { Button, Layout, Menu, Space, Typography } from 'antd'
+import { Suspense } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { PageLoading } from '../app/PageLoading'
 import { useLogout, useSession } from '../auth/useSession'
 
 const NAV_ITEMS = [
@@ -38,7 +40,9 @@ export function AppLayout() {
         </Space>
       </Layout.Header>
       <Layout.Content style={{ padding: 24 }}>
-        <Outlet />
+        <Suspense fallback={<PageLoading />}>
+          <Outlet />
+        </Suspense>
       </Layout.Content>
     </Layout>
   )

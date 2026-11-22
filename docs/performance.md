@@ -71,3 +71,19 @@ laptops on battery. Ant Design's runtime styles are turned off in tests
 (jsdom spent most of each first render processing them). Waits allow 3 s
 and tests 15 s; these limits only matter when a test is failing. Speed is
 tracked with the slowest-tests report instead.
+
+## Frontend bundle
+
+Each page route loads on demand (React.lazy), so the login page doesn't
+download employee or insights code.
+
+| | Before | After |
+|---|---|---|
+| Login page downloads | 1,212.5 kB (382.9 kB gzipped) | 820.3 kB (268.1 kB gzipped), 32% less |
+| Total across all chunks | 1,212.5 kB, one file | 1,227.3 kB, 22 files |
+
+Splitting adds 15 kB in total, but each page only downloads what it uses.
+Most of what the login page still loads is Ant Design's shared core, a
+single 600 kB chunk every page needs; the browser caches it after the first
+visit. The build's 500 kB chunk warning refers to that chunk, and is left in
+place rather than silenced.
