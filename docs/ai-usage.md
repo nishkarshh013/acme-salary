@@ -48,6 +48,8 @@ what I accepted, and where I corrected or overrode the output.
 | 21 | Frontend | Asked Claude Code for the employee detail page, history timeline and all write forms, with money kept as strings | The page, four forms and tests. It resolved an ambiguity in my spec sensibly and flagged that browser and server disagree about "today" near midnight. | Made the server the single source of "today" through a configured business timezone. Claude Code noticed my machine's India timezone made the new tests unable to catch the bug, pinned the test runner to UTC, and proved five tests fail with the bug restored. Rejected the raised test timeouts and had the slow tests fixed at the cause. |
 | 22 | Frontend | Asked Claude Code for the insights overview and country drill-down, with each statistic linking to the employees behind it | Both pages with tests; it broke three behaviours on purpose to prove the tests catch them. It also traced the flaky suite to jsdom processing Ant Design's CSS and to timing that depended on machine speed. | Distinguished wait and test timeouts (which only matter when a test fails) from test speed (tracked with the slowest-tests report), and made the suite pass on a laptop in power-saver mode, since evaluators may run it on slower machines. Turned off Ant Design's runtime styles in tests. Added a CLAUDE.md rule after the agent changed my power profile without asking. |
 | 23 | Frontend | Reviewed the insights page in the browser | — | The converted-value label repeated on every row and bar made the page hard to read. Moved it into the column header and chart heading, keeping a per-row label only where it differs, such as a missing exchange rate. |
+| 24 | Deployment | Asked Claude Code to prepare a single Docker service for Railway, and to check whether Docker was installed without installing anything | Dockerfile, SPA serving, PORT handling, start-up migrations and seed, railway.json. Running the production build through the real entrypoint caught two boot-crashing bugs. | Built and ran the image myself with sudo, rather than adding my user to the docker group, which effectively grants root. Removed the unused Solid gems, Kamal and the old Dockerfile, so there is one deployment path. |
+| 25 | Frontend | Asked Claude Code to fix an Ant Design warning in the hire test | A component that always renders a currency suffix, and a before/after comparison proving the warning is gone | Kept the fix even though Claude Code showed the warning's wording overstated the problem: it still flagged a real structural change in the input. |
 
 
 ## Prompts worth keeping
@@ -86,6 +88,9 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
 > rates yet. Run bundle exec rspec and stop when it passes, so I can review.
 
 ## Where AI got it wrong
+## Mistakes caught
+
+Mistakes by the AI tools and by me, and how each was found.
 
 - **Incomplete edit.** When I asked to preserve history, the first change updated
   the scope tables but left other sections describing the old behaviour. I caught
@@ -102,23 +107,20 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   commit pushed to GitHub contained no backend code. Claude Code noticed the
   mismatch later while building the models. Lesson: after scaffolding, check
   that `git ls-files` lists the files.
-
 - **Silently skipped task.** I asked Claude Code for two changes in one
   prompt: re-check the session on tab focus, and switch tests to user-event.
   Its report described only the first, and didn't say the second was
   missing. A grep of package.json showed user-event was never installed.
   Lesson: verify each item in a multi-part request, and prefer one task per
   prompt.
-
-  - **Untestable manual check.** The browser test plan from Claude (claude.ai)
+- **Untestable manual check.** The browser test plan from Claude (claude.ai)
   said to delete the session cookie and click Insights, but Insights was a
   placeholder that makes no API calls, so no 401 could happen. I questioned
   the result instead of assuming a bug or a pass. Reloading the page and
   calling the API directly showed the server rejects requests without a
   session. It also exposed a real gap, an expired session going unnoticed
   until the next data request, which I fixed.
-
-  - **Committed a half-finished change (my mistake).** I committed the
+- **Committed a half-finished change (my mistake).** I committed the
   test-speed work before Claude Code had finished it, so commit b9943bc
   restored the default timeouts without the fix that made them pass, and the
   suite failed under parallel load. The real cause turned out to be jsdom
@@ -130,14 +132,12 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   Ant Design dropdowns that were already closing, which a real user can't
   do, and a "no delay" typing setting hid it. Restoring realistic timing
   exposed the problem; the helper now only picks from an open dropdown.
-
 - **A race in a test helper.** The location() helper recorded the URL in a
   React effect, which can run after the screen updates, so a test
   occasionally read the old URL and failed. Ten clean runs missed it; it
   showed up when I ran the suite before committing, and the commit was
   stopped. The helper now reads the router's location directly.
-
 - **Two fixes in one commit (my mistake).** Commit 42391bd contains both the
-test-helper fix its message describes and the currency-suffix fix for the
-money inputs, because I staged the whole frontend folder. Both changes are
-small and independent, so I left the commit as it is.
+  test-helper fix its message describes and the currency-suffix fix for the
+  money inputs, because I staged the whole frontend folder. Both changes are
+  small and independent, so I left the commit as it is.
