@@ -1,0 +1,33 @@
+# Build context is the repository root (see Dockerfile).
+
+# Git
+.git/
+**/.gitignore
+
+# Dependencies and build output: installed and built inside the image
+**/node_modules/
+frontend/dist/
+
+# Environment files and keys: configuration comes from env vars at runtime
+**/.env*
+backend/config/master.key
+backend/config/credentials/*.key
+
+# Logs, temp files and local storage (keep the empty directories)
+**/*.log
+backend/log/*
+!backend/log/.keep
+backend/tmp/*
+!backend/tmp/.keep
+backend/storage/*
+!backend/storage/.keep
+
+# Not needed in the image
+docs/
+backend/spec/
+frontend/coverage/
+backend/.github/
+backend/.kamal/
+backend/config/deploy*.yml
+**/Dockerfile*
+**/.dockerignore

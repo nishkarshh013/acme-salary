@@ -6,9 +6,19 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
+# Railway says which port to listen on in PORT (3000 when unset). Thruster
+# listens there (HTTP_PORT) and runs Puma behind it on TARGET_PORT, setting
+# Puma's PORT to that itself.
+export HTTP_PORT="${PORT:-3000}"
+export TARGET_PORT="${TARGET_PORT:-3100}"
+
+# When starting the server: create or migrate the database, then seed it.
+# Seeding is safe on every start: it creates the HR manager account only if
+# missing (HR_EMAIL and HR_PASSWORD are required) and generates demo data
+# only into an empty database.
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+  ./bin/rails db:seed
 fi
 
 exec "${@}"

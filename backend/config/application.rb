@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails"
+require_relative "../lib/immutable_assets"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
@@ -56,5 +57,11 @@ module Backend
     # Extra origins allowed to send POST/PATCH/PUT/DELETE, besides the app's
     # own (see SameOriginRequests). Set per environment.
     config.x.allowed_origins = []
+
+    # The React build's index.html (frontend/dist, which the Dockerfile copies
+    # into public/). FrontendController serves it for the app's own paths.
+    config.x.frontend_index = config.root.join("public", "index.html")
+    # Hashed build files under /assets/ (the React build) are cached for a year.
+    config.middleware.insert_before ActionDispatch::Static, ImmutableAssets
   end
 end

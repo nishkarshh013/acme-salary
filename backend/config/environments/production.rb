@@ -12,8 +12,10 @@ Rails.application.configure do
   # Full error reports are disabled.
   config.consider_all_requests_local = false
 
-  # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  # Public files (index.html, favicon, robots.txt) are revalidated on every
+  # load, so a deploy shows up at once. The hashed build files under /assets/
+  # are cached for a year instead (ImmutableAssets, config/application.rb).
+  config.public_file_server.headers = { "cache-control" => "no-cache" }
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
@@ -21,7 +23,8 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
+  # Assume all access to the app is happening through a SSL-terminating reverse proxy
+  # (Railway's). Requests then count as HTTPS, so session cookies are marked secure.
   config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
@@ -43,12 +46,11 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
-
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  # One database (DATABASE_URL) and one Puma process, so the cache stays in
+  # memory. The only thing cached is the login rate limit's counter, which
+  # one process counts correctly; it resets on restart. The app runs no
+  # background jobs, so Active Job keeps its in-process default.
+  config.cache_store = :memory_store
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
