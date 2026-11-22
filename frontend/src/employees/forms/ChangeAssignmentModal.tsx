@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { changeAssignment, type ChangeAssignmentBody } from '../../api/employees'
 import type { EmployeeDetail } from '../../api/types'
 import { useToday } from '../../auth/useSession'
+import { CurrencySuffix } from '../../money/CurrencySuffix'
 import { formatMoney } from '../../money/formatMoney'
 import { useCountries, useDepartments, useJobTitles } from '../../lookups/useLookups'
 import { useEmployeeWrite } from '../useEmployee'
@@ -118,7 +119,7 @@ export function ChangeAssignmentModal({ employee, onClose }: Props) {
                 : `Current: ${formatMoney(employee.current_salary)}. Leave empty to keep it.`
             }
           >
-            <Input inputMode="decimal" autoComplete="off" suffix={newCurrency ?? currentCurrency} />
+            <Input inputMode="decimal" autoComplete="off" suffix={<CurrencySuffix currency={newCurrency ?? currentCurrency} />} />
           </Form.Item>
         ) : (
           <Form.Item>

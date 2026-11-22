@@ -4,6 +4,7 @@ import { hireEmployee, type HireBody } from '../../api/employees'
 import { useToday } from '../../auth/useSession'
 import { useCountries, useDepartments, useJobTitles } from '../../lookups/useLookups'
 import { useEmployeeWrite } from '../useEmployee'
+import { CurrencySuffix } from '../../money/CurrencySuffix'
 import { moneyRules, pastDateRules, requiredRule } from './formRules'
 import { WriteErrorAlert } from './WriteErrorAlert'
 
@@ -93,7 +94,7 @@ export function HireEmployeeModal({ onClose }: Props) {
           rules={moneyRules('Salary')}
           extra={currency ? `Paid in ${currency}, the currency of the chosen country.` : 'Choose a country to set the currency.'}
         >
-          <Input inputMode="decimal" autoComplete="off" suffix={currency ?? ''} />
+          <Input inputMode="decimal" autoComplete="off" suffix={<CurrencySuffix currency={currency} />} />
         </Form.Item>
       </Form>
     </Modal>

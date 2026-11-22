@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react'
 import { ConfigProvider } from 'antd'
-import { useEffect } from 'react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { createQueryClient } from '../api/queryClient'
 import { AppProviders } from '../app/AppProviders'
 import { AppRoutes } from '../app/AppRoutes'
@@ -14,14 +13,10 @@ export function renderApp(path: string) {
   const queryClient = createQueryClient()
   queryClient.setDefaultOptions({ queries: { ...queryClient.getDefaultOptions().queries, retry: false } })
 
-  const probe = { location: path }
-  function LocationProbe() {
-    const { pathname, search } = useLocation()
-    useEffect(() => {
-      probe.location = pathname + search
-    }, [pathname, search])
-    return null
-  }
+  // An in-memory router that the test holds on to. location() reads its
+  // state, which changes when a navigation completes, before React renders
+  // the new page, so it is never behind what the test sees on screen.
+  const router = createMemoryRouter([{ path: '*', element: <AppRoutes /> }], { initialEntries: [path] })
 
   render(
     // Tests only: Ant Design generates no styles at runtime. Under jsdom,
@@ -30,12 +25,14 @@ export function renderApp(path: string) {
     // check styling, and the real app keeps its runtime styles.
     <ConfigProvider theme={{ zeroRuntime: true }}>
       <AppProviders queryClient={queryClient}>
-        <MemoryRouter initialEntries={[path]}>
-          <AppRoutes />
-          <LocationProbe />
-        </MemoryRouter>
+        <RouterProvider router={router} />
       </AppProviders>
     </ConfigProvider>,
   )
-  return { queryClient, location: () => probe.location }
+
+  const location = () => {
+    const { pathname, search } = router.state.location
+    return pathname + search
+  }
+  return { queryClient, location }
 }

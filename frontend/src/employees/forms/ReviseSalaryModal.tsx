@@ -2,6 +2,7 @@ import { App, Form, Input, Modal, Typography } from 'antd'
 import { reviseSalary, type ReviseSalaryBody } from '../../api/employees'
 import type { EmployeeDetail } from '../../api/types'
 import { useToday } from '../../auth/useSession'
+import { CurrencySuffix } from '../../money/CurrencySuffix'
 import { formatMoney } from '../../money/formatMoney'
 import { useEmployeeWrite } from '../useEmployee'
 import { moneyRules, pastDateRules, requiredRule } from './formRules'
@@ -66,7 +67,7 @@ export function ReviseSalaryModal({ employee, onClose }: Props) {
             </Typography.Text>
           }
         >
-          <Input inputMode="decimal" autoComplete="off" suffix={currency} />
+          <Input inputMode="decimal" autoComplete="off" suffix={<CurrencySuffix currency={currency} />} />
         </Form.Item>
         <Form.Item label="Effective date" name="effective_date" rules={pastDateRules('Effective date', today)}>
           <Input type="date" max={today} />
