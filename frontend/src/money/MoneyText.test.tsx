@@ -27,6 +27,25 @@ describe('MoneyText', () => {
     expect(screen.getByText('USD, converted at fixed rates as of 2026-09-15')).toBeInTheDocument()
   })
 
+  it('can put the label on its own line, and shows only the label when a rate is missing', () => {
+    const { container } = render(
+      <MoneyText
+        stacked
+        locale="en-US"
+        value={{
+          amount: null,
+          currency: 'USD',
+          converted: true,
+          rates_as_of: null,
+          label: 'USD conversion unavailable: an exchange rate is missing',
+        }}
+      />,
+    )
+
+    expect(screen.getByText('USD conversion unavailable: an exchange rate is missing')).toBeInTheDocument()
+    expect(container).not.toHaveTextContent('$')
+  })
+
   it('shows a dash for a missing value', () => {
     render(<MoneyText value={null} />)
 

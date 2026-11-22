@@ -1,0 +1,47 @@
+.payroll-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.payroll-bars__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  gap: 4px 16px;
+  align-items: center;
+}
+
+.payroll-bars__name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.payroll-bars__track {
+  height: 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.payroll-bars__bar {
+  height: 100%;
+  background: #1677ff;
+  border-radius: 3px;
+}
+
+.payroll-bars__amount {
+  grid-column: 2;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 576px) {
+  .payroll-bars__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .payroll-bars__amount {
+    grid-column: 1;
+  }
+}

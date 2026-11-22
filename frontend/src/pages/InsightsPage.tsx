@@ -1,10 +1,75 @@
-import { Typography } from 'antd'
+import { Card, Col, Row, Skeleton, Typography } from 'antd'
+import type { ReactNode } from 'react'
+import type { InsightsSummary } from '../api/types'
+import { CountryInsightsTable } from '../insights/CountryInsightsTable'
+import { DepartmentPayrollBars } from '../insights/DepartmentPayrollBars'
+import { InsightsNotes } from '../insights/InsightsNotes'
+import { QueryErrorAlert } from '../insights/QueryErrorAlert'
+import { useCountryInsights, useInsightsSummary } from '../insights/useInsights'
+import { formatConvertedMoney } from '../money/formatMoney'
 
 export function InsightsPage() {
+  const summary = useInsightsSummary()
+  const countries = useCountryInsights()
+
   return (
     <>
       <Typography.Title level={2}>Insights</Typography.Title>
-      <Typography.Paragraph type="secondary">Salary insights are coming next.</Typography.Paragraph>
+      <InsightsNotes />
+
+      {summary.isError && (
+        <QueryErrorAlert title="Couldn’t load the summary" error={summary.error} onRetry={() => summary.refetch()} />
+      )}
+      {!summary.isError && <SummaryCards summary={summary.data} />}
+
+      <Card title="Countries" style={{ marginBottom: 16 }}>
+        {countries.isError && (
+          <QueryErrorAlert title="Couldn’t load countries" error={countries.error} onRetry={() => countries.refetch()} />
+        )}
+        <CountryInsightsTable countries={countries.data} loading={countries.isFetching && !countries.data} />
+      </Card>
+
+      {!summary.isError && (
+        <Card title="Payroll by department (USD)">
+          {summary.data ? (
+            <DepartmentPayrollBars departments={summary.data.by_department} />
+          ) : (
+            <Skeleton active paragraph={{ rows: 6 }} title={false} />
+          )}
+        </Card>
+      )}
     </>
+  )
+}
+
+function SummaryCards({ summary }: { summary: InsightsSummary | undefined }) {
+  const payroll = summary && formatConvertedMoney(summary.total_payroll_usd)
+
+  return (
+    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Col xs={24} md={8}>
+        <FigureCard title="Active headcount" loading={!summary}>
+          {summary && <div className="insight-figure">{summary.headcount.toLocaleString()}</div>}
+        </FigureCard>
+      </Col>
+      <Col xs={24} md={16}>
+        <FigureCard title="Total payroll" loading={!payroll}>
+          {payroll && (
+            <>
+              <div className="insight-figure">{payroll.text ?? '—'}</div>
+              <Typography.Text type="secondary">{payroll.label}</Typography.Text>
+            </>
+          )}
+        </FigureCard>
+      </Col>
+    </Row>
+  )
+}
+
+function FigureCard({ title, loading, children }: { title: string; loading: boolean; children: ReactNode }) {
+  return (
+    <Card title={title} style={{ height: '100%' }}>
+      {loading ? <Skeleton active paragraph={{ rows: 1 }} title={false} /> : children}
+    </Card>
   )
 }

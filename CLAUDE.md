@@ -63,6 +63,10 @@ countries). Read these before making changes:
   `formatMoney` or `<MoneyText>` (src/money/), which pass the string to
   Intl.NumberFormat. Never `Number()` or `parseFloat` an amount, and don't
   do money arithmetic in the browser.
+  - The one exception: an amount may be converted with `Number` only for bar
+    widths and sort comparisons, via `approximateAmount` and its helpers in
+    src/money/approximateAmount.ts. Never display the result or send it to
+    the API.
 - A converted value (`converted: true`) is always shown with its `label`.
 - Tests use Vitest and React Testing Library with fetch mocked by
   `mockFetch`, and `renderApp(path)` for whole-app flows (src/test/). No
