@@ -75,3 +75,5 @@ countries). Read these before making changes:
 - Do not run `git commit` or `git push`. I commit after reviewing.
 - Do not edit files in docs/ unless I ask.
 - If a requirement is unclear, ask instead of guessing.
+- Don't change system settings outside this repository (power profile, global
+  packages, services). Ask me instead.

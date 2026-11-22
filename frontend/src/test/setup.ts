@@ -1,8 +1,13 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 
 afterEach(() => cleanup())
+
+// findBy and waitFor give up after 3 s instead of 1 s. A wait only takes
+// that long when a test is failing anyway, and this keeps slower machines
+// (or a laptop in power-saver mode) from failing on timing alone.
+configure({ asyncUtilTimeout: 3000 })
 
 // Ant Design's responsive helpers call matchMedia, which jsdom doesn't implement.
 Object.defineProperty(window, 'matchMedia', {
