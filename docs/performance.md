@@ -58,3 +58,16 @@ On 10,000 employees (9,711 active), full Rails stack, 30 runs each.
 All aggregation (min, max, average, median, totals, currency conversion)
 runs in SQL, so no employee rows are loaded into Ruby. The summary runs three
 grouped queries.
+
+## Frontend test suite
+
+109 tests. Full run: 13–15 s on a laptop in balanced mode, about 26 s in
+power-saver mode (CPU at 0.7–1.1 GHz). The two slowest tests are full flows
+(hiring an employee, and returning to page 1 of a filtered list) at about
+2.5–3 s, or about 5 s in power-saver mode.
+
+The suite must pass on slow machines, since reviewers may run it on
+laptops on battery. Ant Design's runtime styles are turned off in tests
+(jsdom spent most of each first render processing them). Waits allow 3 s
+and tests 15 s; these limits only matter when a test is failing. Speed is
+tracked with the slowest-tests report instead.

@@ -46,6 +46,8 @@ what I accepted, and where I corrected or overrode the output.
 | 19 | Frontend | Asked Claude Code for the frontend foundation: API client, auth, layout, exact money formatting and test setup | The foundation with tests, verified through tests only | Checked it in the browser against the running Rails app and checked that no amount is converted to a JavaScript number. Switched tests to user-event. Added a session re-check when the tab regains focus, so an expired session is noticed immediately; Claude Code found that the obvious setting would have done nothing, and the tests proved it. |
 | 20 | Frontend | Asked Claude Code for the employee list with all table state in the URL, salary sorting only within one country, and a status for every requested item | The page with 69 tests. It broke the code on purpose to prove the debounce and Ctrl-click tests catch failures, and flagged which parts had no automated test. | Moved the debounce test to fake timers so it is fast and deterministic. Added a button to the past-the-end message. Covered the back button and dropdowns, which jsdom can't test well, with a manual browser check. |
 | 21 | Frontend | Asked Claude Code for the employee detail page, history timeline and all write forms, with money kept as strings | The page, four forms and tests. It resolved an ambiguity in my spec sensibly and flagged that browser and server disagree about "today" near midnight. | Made the server the single source of "today" through a configured business timezone. Claude Code noticed my machine's India timezone made the new tests unable to catch the bug, pinned the test runner to UTC, and proved five tests fail with the bug restored. Rejected the raised test timeouts and had the slow tests fixed at the cause. |
+| 22 | Frontend | Asked Claude Code for the insights overview and country drill-down, with each statistic linking to the employees behind it | Both pages with tests; it broke three behaviours on purpose to prove the tests catch them. It also traced the flaky suite to jsdom processing Ant Design's CSS and to timing that depended on machine speed. | Distinguished wait and test timeouts (which only matter when a test fails) from test speed (tracked with the slowest-tests report), and made the suite pass on a laptop in power-saver mode, since evaluators may run it on slower machines. Turned off Ant Design's runtime styles in tests. Added a CLAUDE.md rule after the agent changed my power profile without asking. |
+| 23 | Frontend | Reviewed the insights page in the browser | — | The converted-value label repeated on every row and bar made the page hard to read. Moved it into the column header and chart heading, keeping a per-row label only where it differs, such as a missing exchange rate. |
 
 
 ## Prompts worth keeping
@@ -115,3 +117,16 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   calling the API directly showed the server rejects requests without a
   session. It also exposed a real gap, an expired session going unnoticed
   until the next data request, which I fixed.
+
+  - **Committed a half-finished change (my mistake).** I committed the
+  test-speed work before Claude Code had finished it, so commit b9943bc
+  restored the default timeouts without the fix that made them pass, and the
+  suite failed under parallel load. The real cause turned out to be jsdom
+  processing Ant Design's CSS on first render, made worse by running 7 test
+  workers on 4 cores. Fixed by turning off Ant Design's runtime styles in
+  tests, limiting workers, and allowing longer waits. Lesson: run the suite
+  myself before every commit, even when the change looks finished.
+- **A test passing for the wrong reason.** A test helper clicked options in
+  Ant Design dropdowns that were already closing, which a real user can't
+  do, and a "no delay" typing setting hid it. Restoring realistic timing
+  exposed the problem; the helper now only picks from an open dropdown.
