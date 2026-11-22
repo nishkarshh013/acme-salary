@@ -7,10 +7,14 @@ import { InsightsNotes } from '../insights/InsightsNotes'
 import { QueryErrorAlert } from '../insights/QueryErrorAlert'
 import { useCountryInsights, useInsightsSummary } from '../insights/useInsights'
 import { formatConvertedMoney } from '../money/formatMoney'
+import { ConvertedTitle } from '../money/MoneyText'
+import { sharedLabel } from '../money/sharedLabel'
 
 export function InsightsPage() {
   const summary = useInsightsSummary()
   const countries = useCountryInsights()
+  // Shown once in the chart heading; a bar with a different label keeps it beside its amount.
+  const barsLabel = summary.data ? sharedLabel(summary.data.by_department.map((row) => row.total_payroll_usd)) : null
 
   return (
     <>
@@ -30,9 +34,9 @@ export function InsightsPage() {
       </Card>
 
       {!summary.isError && (
-        <Card title="Payroll by department (USD)">
+        <Card title={<ConvertedTitle title="Payroll by department (USD)" label={barsLabel} />}>
           {summary.data ? (
-            <DepartmentPayrollBars departments={summary.data.by_department} />
+            <DepartmentPayrollBars departments={summary.data.by_department} sharedLabel={barsLabel} />
           ) : (
             <Skeleton active paragraph={{ rows: 6 }} title={false} />
           )}

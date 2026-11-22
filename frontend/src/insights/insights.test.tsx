@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { ConvertedMoney, CountryBreakdownResponse, CountryInsight, GroupInsight, InsightsSummary } from '../api/types'
-import { commonRoutes, engineer, engineering, france, germany, sales, seniorEngineer } from '../test/employeeFixtures'
+import { commonRoutes, engineer, engineering, france, germany, india, sales, seniorEngineer } from '../test/employeeFixtures'
 import { mockFetch, type MockResponse } from '../test/mockFetch'
 import { renderApp } from '../test/renderApp'
 import { setupUser } from '../test/user'
@@ -103,11 +103,20 @@ function setup(path: string, routes: Record<string, MockResponse> = {}) {
 
 const countryRow = (name: string) => screen.getByRole('row', { name: new RegExp(`^${name}`) })
 const columnHeader = (name: string) => screen.getByRole('columnheader', { name })
+const usdHeader = () => screen.getByRole('columnheader', { name: /^Total payroll \(USD\)/ })
 /** The text of one column, top to bottom (data rows only, not the table's hidden measuring row). */
 function columnTexts(index: number) {
   return Array.from(document.querySelectorAll('tbody tr[data-row-key]')).map(
     (row) => within(row as HTMLElement).getAllByRole('cell')[index]?.textContent,
   )
+}
+/** The department chart's card heading, which also carries the shared label. */
+function chartHeading() {
+  const head = Array.from(document.querySelectorAll<HTMLElement>('.ant-card-head-title')).find((el) =>
+    el.textContent?.startsWith('Payroll by department (USD)'),
+  )
+  if (!head) throw new Error('No department chart')
+  return head
 }
 /** The Ant Design card with this title. */
 function card(title: string) {
@@ -122,14 +131,18 @@ describe('Insights overview', () => {
 
     expect(await screen.findByText('10,000')).toBeInTheDocument()
     expect(screen.getByText('$1,234,567,890.12')).toBeInTheDocument()
+    expect(within(card('Total payroll')).getByText(LABEL)).toBeInTheDocument() // beside the standalone total
     expect(screen.getByText(ACTIVE_ONLY_NOTE)).toBeInTheDocument()
     expect(screen.getByText(ROUNDING_NOTE)).toBeInTheDocument()
 
     const germanyCells = within(await screen.findByRole('row', { name: /^Germany/ })).getAllByRole('cell')
     expect(germanyCells.map((cell) => cell.textContent)).toEqual([
       'Germany', 'EUR', '3', '€60,000.00', '€70,000.00', '€73,333.33', '€90,000.00', '€220,000.00',
-      `$237,600.00${LABEL}`,
+      '$237,600.00',
     ])
+    // The shared label is shown once, in the column header, not under every amount.
+    expect(within(usdHeader()).getByText(LABEL)).toBeInTheDocument()
+    for (const row of document.querySelectorAll('tbody tr[data-row-key]')) expect(row).not.toHaveTextContent(LABEL)
     // France has no active employees: dashes, not zeros, for the statistics.
     expect(within(countryRow('France')).getAllByText('—')).toHaveLength(4)
 
@@ -139,10 +152,20 @@ describe('Insights overview', () => {
     expect(within(bars).getByText('$50,000.00')).toBeInTheDocument()
     expect(screen.getByTestId(`bar-${engineering.id}`)).toHaveStyle({ width: '100%' })
     expect(screen.getByTestId(`bar-${sales.id}`)).toHaveStyle({ width: '25%' })
+    // The shared label is shown once, in the chart heading, not beside every bar.
+    expect(within(chartHeading()).getByText(LABEL)).toBeInTheDocument()
+    expect(within(bars).queryByText(LABEL)).not.toBeInTheDocument()
   })
 
-  it('shows every converted amount with its label, and the label alone when a rate is missing', async () => {
+  it('labels every converted amount, and shows the label alone when a rate is missing', async () => {
+    const indiaRow: CountryInsight = {
+      ...germanyRow,
+      country: india,
+      total_payroll: { amount: '5000000.00', currency: 'INR' },
+      total_payroll_usd: usd(null),
+    }
     setup('/insights', {
+      'GET /api/insights/countries': { status: 200, body: { countries: [franceRow, germanyRow, indiaRow] } },
       'GET /api/insights/summary': {
         status: 200,
         body: {
@@ -151,6 +174,7 @@ describe('Insights overview', () => {
           by_department: [
             { department: engineering, headcount: 2, total_payroll_usd: usd('200000.00') },
             { department: sales, headcount: 1, total_payroll_usd: usd(null) },
+            { department: { id: 3, name: 'Support' }, headcount: 1, total_payroll_usd: usd('40000.00') },
           ],
         },
       },
@@ -161,12 +185,24 @@ describe('Insights overview', () => {
     expect(within(payrollCard).getByText(MISSING_RATE)).toBeInTheDocument()
     expect(within(payrollCard).queryByText(/\$/)).not.toBeInTheDocument()
 
+    // In the chart, the label most bars share goes in the heading; the bar
+    // whose rate is missing keeps its own label, with no amount and no bar.
     const bars = screen.getByRole('list', { name: 'Payroll by department' })
-    expect(within(bars).getByText(LABEL)).toBeInTheDocument() // Engineering
-    expect(within(bars).getByText(MISSING_RATE)).toBeInTheDocument() // Sales: no amount, no bar
+    expect(within(chartHeading()).getByText(LABEL)).toBeInTheDocument()
+    expect(within(bars).queryByText(LABEL)).not.toBeInTheDocument()
+    const salesBar = within(bars).getByText('Sales').closest('li') as HTMLElement
+    expect(salesBar).toHaveTextContent(MISSING_RATE)
+    expect(salesBar).not.toHaveTextContent('$')
     expect(screen.getByTestId(`bar-${sales.id}`)).toHaveStyle({ width: '0%' })
 
-    expect(within(await screen.findByRole('row', { name: /^Germany/ })).getByText(LABEL)).toBeInTheDocument()
+    // In the table, the label most rows share goes in the header; a row whose
+    // rate is missing keeps its own label in its cell, with no amount.
+    await screen.findByRole('row', { name: /^Germany/ })
+    expect(within(usdHeader()).getByText(LABEL)).toBeInTheDocument()
+    expect(within(countryRow('Germany')).queryByText(LABEL)).not.toBeInTheDocument()
+    const indiaUsd = within(countryRow('India')).getAllByRole('cell').at(-1) as HTMLElement
+    expect(indiaUsd).toHaveTextContent(MISSING_RATE)
+    expect(indiaUsd).not.toHaveTextContent('$')
   })
 
   it('opens a country’s page when its row is clicked', async () => {

@@ -67,7 +67,7 @@ countries). Read these before making changes:
     widths and sort comparisons, via `approximateAmount` and its helpers in
     src/money/approximateAmount.ts. Never display the result or send it to
     the API.
-- A converted value (`converted: true`) is always shown with its `label`.
+- Every converted value is labelled, beside it or in its column header.
 - Tests use Vitest and React Testing Library with fetch mocked by
   `mockFetch`, and `renderApp(path)` for whole-app flows (src/test/). No
   network calls.

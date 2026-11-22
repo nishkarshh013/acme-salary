@@ -46,6 +46,25 @@ describe('MoneyText', () => {
     expect(container).not.toHaveTextContent('$')
   })
 
+  describe('in a group whose heading shows the label', () => {
+    const converted = (amount: string | null, label: string) =>
+      ({ amount, currency: 'USD', converted: true, rates_as_of: null, label }) as const
+
+    it('shows only the amount when its label matches the heading', () => {
+      const { container } = render(
+        <MoneyText locale="en-US" sharedLabel="USD, as of 2026-10-01" value={converted('10.00', 'USD, as of 2026-10-01')} />,
+      )
+
+      expect(container).toHaveTextContent(/^\$10\.00$/)
+    })
+
+    it('keeps its own label when it differs from the heading', () => {
+      render(<MoneyText locale="en-US" sharedLabel="USD, as of 2026-10-01" value={converted(null, 'Rate missing')} />)
+
+      expect(screen.getByText('Rate missing')).toBeInTheDocument()
+    })
+  })
+
   it('shows a dash for a missing value', () => {
     render(<MoneyText value={null} />)
 

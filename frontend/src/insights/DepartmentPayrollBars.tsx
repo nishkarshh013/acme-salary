@@ -6,14 +6,17 @@ import './DepartmentPayrollBars.css'
 
 interface Props {
   departments: InsightsSummary['by_department']
+  /** The label shown once in the chart heading; only a bar whose label differs shows its own. */
+  sharedLabel: string | null
 }
 
 /**
  * Payroll per department in USD as horizontal bars, scaled to the largest.
- * The bar is only a picture; the exact amount and its label are the text
- * beside it. A department whose total couldn't be converted gets no bar.
+ * The bar is only a picture; the exact amount is the text beside it, with
+ * its label when that differs from the chart heading's. A department whose
+ * total couldn't be converted gets no bar.
  */
-export function DepartmentPayrollBars({ departments }: Props) {
+export function DepartmentPayrollBars({ departments, sharedLabel }: Props) {
   if (departments.length === 0) return <Empty description="No departments" />
 
   const largest = Math.max(0, ...departments.map((row) => approximateAmount(row.total_payroll_usd) ?? 0))
@@ -31,7 +34,7 @@ export function DepartmentPayrollBars({ departments }: Props) {
             />
           </div>
           <span className="payroll-bars__amount">
-            <MoneyText value={row.total_payroll_usd} stacked />
+            <MoneyText value={row.total_payroll_usd} sharedLabel={sharedLabel} stacked />
           </span>
         </li>
       ))}

@@ -2,7 +2,8 @@ import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
 import { Link, useNavigate } from 'react-router-dom'
 import type { CountryInsight } from '../api/types'
-import { MoneyText } from '../money/MoneyText'
+import { ConvertedTitle, MoneyText } from '../money/MoneyText'
+import { sharedLabel } from '../money/sharedLabel'
 import { statisticColumns } from './statisticColumns'
 import { countryInsightsPath } from './urls'
 
@@ -14,6 +15,8 @@ interface Props {
 /** One row per country, in local currency plus total payroll in USD. A row opens the country's page. */
 export function CountryInsightsTable({ countries, loading }: Props) {
   const navigate = useNavigate()
+  // Shown once in the header; a row with a different label keeps it in its cell.
+  const usdLabel = sharedLabel((countries ?? []).map((row) => row.total_payroll_usd))
 
   const columns: ColumnsType<CountryInsight> = [
     {
@@ -25,9 +28,9 @@ export function CountryInsightsTable({ countries, loading }: Props) {
     ...statisticColumns<CountryInsight>(false),
     {
       key: 'total_payroll_usd',
-      title: 'Total payroll (USD)',
+      title: <ConvertedTitle title="Total payroll (USD)" label={usdLabel} />,
       align: 'right',
-      render: (_, row) => <MoneyText value={row.total_payroll_usd} stacked />,
+      render: (_, row) => <MoneyText value={row.total_payroll_usd} sharedLabel={usdLabel} stacked />,
     },
   ]
 
