@@ -87,3 +87,7 @@ Most of what the login page still loads is Ant Design's shared core, a
 single 600 kB chunk every page needs; the browser caches it after the first
 visit. The build's 500 kB chunk warning refers to that chunk, and is left in
 place rather than silenced.
+
+Ten consecutive runs passed on battery (15–20 s each). One earlier failure
+happened while the backend suite and a production server were running at the
+same time and didn't recur; the suite is reliable under normal load.

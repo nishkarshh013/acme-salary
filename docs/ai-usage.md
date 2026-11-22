@@ -130,3 +130,14 @@ behaviour: "I am talking about this: 'Today salary data lives in Excel files...'
   Ant Design dropdowns that were already closing, which a real user can't
   do, and a "no delay" typing setting hid it. Restoring realistic timing
   exposed the problem; the helper now only picks from an open dropdown.
+
+- **A race in a test helper.** The location() helper recorded the URL in a
+  React effect, which can run after the screen updates, so a test
+  occasionally read the old URL and failed. Ten clean runs missed it; it
+  showed up when I ran the suite before committing, and the commit was
+  stopped. The helper now reads the router's location directly.
+
+- **Two fixes in one commit (my mistake).** Commit 42391bd contains both the
+test-helper fix its message describes and the currency-suffix fix for the
+money inputs, because I staged the whole frontend folder. Both changes are
+small and independent, so I left the commit as it is.
