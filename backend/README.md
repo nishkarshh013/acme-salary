@@ -5,7 +5,7 @@ eight countries, and to answer how the organisation pays people.
 
 **Live demo:** `https://acme-salary-production-e3e96398.up.railway.app`
 **Login:** `hr@acme.example` / `password123`
-**Demo video:** <VIDEO_LINK>
+**Demo video:** `https://www.loom.com/share/10252659aa1b4d3c8a7744d71832a8ac`
 
 ## What it does
 

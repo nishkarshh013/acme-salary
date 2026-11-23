@@ -27,7 +27,5 @@ docs/
 backend/spec/
 frontend/coverage/
 backend/.github/
-backend/.kamal/
-backend/config/deploy*.yml
 **/Dockerfile*
 **/.dockerignore
