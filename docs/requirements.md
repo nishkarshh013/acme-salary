@@ -58,6 +58,9 @@ The single user is the HR Manager, who is trusted with all salary data. There is
 | Live exchange rates | An external dependency that makes reports change between views; a fixed, dated table keeps numbers reproducible |
 | Payroll processing, payslips, tax | A different product; this tool manages and analyses salary data, it does not pay people |
 | Enterprise-scale tuning (caching, read replicas) | 10,000 rows aggregate in milliseconds with proper indexes; added complexity would not be measurable |
+| Password reset | One user and no email delivery; the HR manager's password is set through deployment configuration |
+| Future-dated salary changes | The newest revision is always the current salary; scheduled raises would need a job to apply them on the day |
+| Inactive employees in statistics | They aren't being paid, so including them would distort medians and payroll totals; they stay in the employee list behind a status filter |
 
 ## Success criteria
 
